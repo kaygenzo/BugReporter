@@ -1,0 +1,3 @@
+include ':bugreporter'
+include ':app'
+rootProject.name = "Bug Reporter"

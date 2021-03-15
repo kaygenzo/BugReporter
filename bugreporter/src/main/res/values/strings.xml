@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="text_field_missing_permission">Missing permission</string>
+    <string name="bug_reporting_description_helper">Please describe what happened</string>
+    <string name="bug_reporting_description_label">Description</string>
+
+    <string name="bug_reporting_portrait">Portrait</string>
+    <string name="bug_reporting_landscape">Landscape</string>
+
+    <string name="bug_reporting_battery_charging">Charging</string>
+
+    <string name="label_field_date_and_time">Date and time</string>
+    <string name="label_field_manufacturer">Manufacturer</string>
+    <string name="label_field_brand">Brand</string>
+    <string name="label_field_model">Model</string>
+    <string name="label_field_app_version">App version</string>
+    <string name="label_field_android_version">Android version</string>
+    <string name="label_field_locale">Locale</string>
+    <string name="label_field_bluetooth_status">Bluetooth enabled ?</string>
+    <string name="label_field_wifi_status">Wifi enabled</string>
+    <string name="label_field_network_status">Network enabled</string>
+    <string name="label_field_screen_density">Screen density</string>
+    <string name="label_field_screen_resolution">Screen resolution</string>
+    <string name="label_field_orientation">Orientation</string>
+    <string name="label_field_battery_status">Battery status</string>
+</resources>

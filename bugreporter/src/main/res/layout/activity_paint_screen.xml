@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/canvasColorsPalette"
+        android:layout_width="40dp"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/paintCanvas"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/paintActionContainer">
+
+        <ImageView
+            android:id="@+id/paintPaletteColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_color_lens_24"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/paintPaletteRed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/paintPaletteRed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_circle_red_24"
+            app:layout_constraintTop_toBottomOf="@+id/paintPaletteColor"
+            app:layout_constraintBottom_toTopOf="@+id/paintPaletteGreen"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintPaletteGreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_circle_green_24"
+            app:layout_constraintBottom_toTopOf="@+id/paintPaletteBlue"
+            app:layout_constraintTop_toBottomOf="@+id/paintPaletteRed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintPaletteBlue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_circle_blue_24"
+            app:layout_constraintBottom_toTopOf="@+id/paintPaletteYellow"
+            app:layout_constraintTop_toBottomOf="@+id/paintPaletteGreen"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintPaletteYellow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_circle_yellow_24"
+            app:layout_constraintBottom_toTopOf="@+id/paintPaletteBlack"
+            app:layout_constraintTop_toBottomOf="@+id/paintPaletteBlue"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintPaletteBlack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_circle_black_24"
+            app:layout_constraintBottom_toTopOf="@+id/paintPaletteWhite"
+            app:layout_constraintTop_toBottomOf="@+id/paintPaletteYellow"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintPaletteWhite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_circle_white_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/paintPaletteBlack"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="#00000000"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.telen.library.bugreporter.views.PaintImageView
+        android:id="@+id/paintCanvas"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/paintActionContainer"
+        app:layout_constraintLeft_toRightOf="@+id/canvasColorsPalette"
+        app:layout_constraintRight_toRightOf="parent"
+        app:strokeColor="#000000"
+        app:strokeWidth="2dp"
+        app:inEditMode="true"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/paintActionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/paintActionUndo"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/paintActionBlur"
+            android:src="@drawable/ic_baseline_undo_24"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintActionBlur"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_constraintLeft_toRightOf="@+id/paintActionUndo"
+            app:layout_constraintRight_toLeftOf="@+id/paintActionClear"
+            android:src="@drawable/ic_baseline_blur_on_24"
+            android:background="#00000000"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/paintActionClear"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_constraintRight_toLeftOf="@+id/paintActionCheck"
+            app:layout_constraintLeft_toRightOf="@+id/paintActionBlur"
+            android:src="@drawable/ic_baseline_clear_24"
+            android:background="#00000000"/>
+
+        <ImageButton
+            android:id="@+id/paintActionCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/paintActionClear"
+            android:src="@drawable/ic_baseline_check_24"
+            android:background="#00000000"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

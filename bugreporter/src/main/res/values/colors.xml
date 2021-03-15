@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="canvas_palette_red">#FF0000</color>
+    <color name="canvas_palette_green">#00FF00</color>
+    <color name="canvas_palette_blue">#0000FF</color>
+    <color name="canvas_palette_yellow">#FFFF00</color>
+    <color name="canvas_palette_black">#000000</color>
+    <color name="canvas_palette_white">#FFFFFF</color>
+</resources>
