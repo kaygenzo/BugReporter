@@ -63,63 +63,6 @@
             app:layout_constraintTop_toBottomOf="@+id/bugReporterScreenshotPreview"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/deviceManufacturer"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:label="@string/label_field_manufacturer"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/deviceBrand"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:label="@string/label_field_brand"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/deviceModel"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:label="@string/label_field_model"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/appVersion"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:label="@string/label_field_app_version"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/androidVersion"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:label="@string/label_field_android_version"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/locale"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:label="@string/label_field_locale"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/bluetoothStatus"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:visibility="gone"-->
-<!--            app:label="@string/label_field_bluetooth_status"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/wifiStatus"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:visibility="gone"-->
-<!--            app:label="@string/label_field_wifi_status"/>-->
-
-<!--        <com.telen.library.bugreporter.views.FieldItemView-->
-<!--            android:id="@+id/networkStatus"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:visibility="gone"-->
-<!--            app:label="@string/label_field_network_status"/>-->
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

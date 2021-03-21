@@ -1,10 +1,10 @@
-package com.telen.library.bugreporter.views
+package com.github.kaygenzo.bugreporter.views
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.telen.library.bugreporter.R
+import com.github.kaygenzo.bugreporter.R
 import kotlinx.android.synthetic.main.view_item_field.view.*
 
 class FieldItemView: ConstraintLayout {

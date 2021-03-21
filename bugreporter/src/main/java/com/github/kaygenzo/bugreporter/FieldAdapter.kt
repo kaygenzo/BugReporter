@@ -1,10 +1,10 @@
-package com.telen.library.bugreporter
+package com.github.kaygenzo.bugreporter
 
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.telen.library.bugreporter.views.FieldItemView
+import com.github.kaygenzo.bugreporter.views.FieldItemView
 import kotlinx.android.synthetic.main.view_item_field.view.*
 
 enum class FieldType {
@@ -24,9 +24,9 @@ enum class FieldType {
     NETWORK_STATUS
 }
 
-data class FieldItem(val type: FieldType, val label: String, val text: String, var enabled: Boolean = true, val visible: Boolean = true)
+internal data class FieldItem(val type: FieldType, val label: String, val text: String, var enabled: Boolean = true, val visible: Boolean = true)
 
-class FieldAdapter(private val items: List<FieldItem>): RecyclerView.Adapter<FieldAdapter.FieldViewHolder>() {
+internal class FieldAdapter(private val items: List<FieldItem>): RecyclerView.Adapter<FieldAdapter.FieldViewHolder>() {
 
     inner class FieldViewHolder(val fieldView: FieldItemView): RecyclerView.ViewHolder(fieldView)
 

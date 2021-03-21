@@ -1,4 +1,4 @@
-package com.telen.library.bugreporter.views
+package com.github.kaygenzo.bugreporter.views
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,7 +8,7 @@ import android.graphics.drawable.Drawable
 import androidx.appcompat.widget.AppCompatImageView
 import android.util.AttributeSet
 import android.view.MotionEvent
-import com.telen.library.bugreporter.R
+import com.github.kaygenzo.bugreporter.R
 
 class PaintImageView: AppCompatImageView {
 

@@ -8,7 +8,7 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        applicationId "com.telen.library.bugreporter.demo"
+        applicationId "com.github.kaygenzo.bugreporter.demo"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
@@ -33,6 +33,8 @@ android {
 }
 
 dependencies {
+
+    //implementation fileTree(dir: 'libs', include: ['*.aar'])
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.3.2'

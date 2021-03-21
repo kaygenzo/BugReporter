@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.telen.library.bugreporter">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.github.kaygenzo.bugreporter">
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+    <application>
+        <activity android:name="com.github.kaygenzo.bugreporter.BugReportActivity"/>
+        <activity android:name="com.github.kaygenzo.bugreporter.PaintActivity"/>
+
+        <service android:name="com.github.kaygenzo.bugreporter.FloatingWidgetService"
+            android:enabled="true"
+            android:exported="false"/>
+    </application>
 
 </manifest>

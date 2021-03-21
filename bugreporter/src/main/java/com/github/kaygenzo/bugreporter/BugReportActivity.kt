@@ -1,4 +1,4 @@
-package com.telen.library.bugreporter
+package com.github.kaygenzo.bugreporter
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -9,11 +9,14 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -24,10 +27,11 @@ import kotlinx.android.synthetic.main.activity_bug_report.*
 import java.io.File
 import java.util.*
 
-
-class BugReportActivity: AppCompatActivity() {
+internal class BugReportActivity: AppCompatActivity() {
 
     companion object {
+
+        private const val REQUEST_CODE_SEND = 0
 
         fun getIntent(
             context: Context,
@@ -210,16 +214,20 @@ class BugReportActivity: AppCompatActivity() {
                     FieldType.ORIENTATION -> FieldItem(
                         it,
                         getString(R.string.label_field_orientation),
-                        if(resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+                        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
                             getString(R.string.bug_reporting_portrait)
                         else
                             getString(R.string.bug_reporting_landscape)
                     )
                     FieldType.BATTERY_STATUS -> {
-                        val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
-                            this.registerReceiver(null, ifilter)
-                        }
-                        val status: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+                        val batteryStatus: Intent? =
+                            IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
+                                this.registerReceiver(null, ifilter)
+                            }
+                        val status: Int = batteryStatus?.getIntExtra(
+                            BatteryManager.EXTRA_STATUS,
+                            -1
+                        ) ?: -1
                         val isCharging: Boolean = status == BatteryManager.BATTERY_STATUS_CHARGING
                                 || status == BatteryManager.BATTERY_STATUS_FULL
 
@@ -231,7 +239,7 @@ class BugReportActivity: AppCompatActivity() {
                         FieldItem(
                             it,
                             getString(R.string.label_field_battery_status),
-                            "$batteryPct% "+(if(isCharging) "- " + getString(R.string.bug_reporting_battery_charging) else "")
+                            "$batteryPct% " + (if (isCharging) "- " + getString(R.string.bug_reporting_battery_charging) else "")
                         )
                     }
                 }
@@ -260,6 +268,37 @@ class BugReportActivity: AppCompatActivity() {
             addItemDecoration(DividerItemDecoration(this@BugReportActivity, RecyclerView.VERTICAL))
             layoutManager = LinearLayoutManager(this@BugReportActivity)
             adapter = fieldItemsAdapter
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_activity_report, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val intent = createReport()
+        startActivityForResult(Intent.createChooser(intent, "Chooser Title"), REQUEST_CODE_SEND)
+        return true
+    }
+
+    private fun createReport(): Intent {
+        val builder = StringBuilder()
+        builder.append("${getString(R.string.bug_reporting_description_label)}: ${bugReporterDescription.text}")
+        fieldItems.filter { it.enabled }.forEach {
+            builder.append("${it.label}:${it.text}\n")
+        }
+        return Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReporter.developerEmailAddress))
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_email_object))
+            putExtra(Intent.EXTRA_TEXT, builder.trim().toString())
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == REQUEST_CODE_SEND) {
+            finish()
         }
     }
 }

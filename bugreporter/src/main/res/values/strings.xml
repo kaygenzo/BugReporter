@@ -24,4 +24,7 @@
     <string name="label_field_screen_resolution">Screen resolution</string>
     <string name="label_field_orientation">Orientation</string>
     <string name="label_field_battery_status">Battery status</string>
+
+    <string name="action_send_report">Send report</string>
+    <string name="report_email_object">New issue reported</string>
 </resources>
