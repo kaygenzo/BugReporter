@@ -7,10 +7,10 @@ import android.graphics.PixelFormat
 import android.graphics.Point
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import android.view.*
 import com.github.kaygenzo.bugreporter.shake.ShakeDetector
 import kotlinx.android.synthetic.main.floating_widget.view.*
+import timber.log.Timber
 import kotlin.math.abs
 
 
@@ -76,7 +76,7 @@ internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener 
                     stopSelf()
                 }
                 else -> {
-                    Log.d("FloatingWidgetService", "Not managed action $it ...")
+                    Timber.d("Not managed action $it ...")
                 }
             }
         } ?: run {
@@ -197,7 +197,7 @@ internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener 
         synchronized(shaked) {
             if(!shaked) {
                 shaked = true
-                Log.d("FloatingWidgetService", "OnShake!")
+                Timber.d("OnShake!")
                 launchReport()
             }
         }

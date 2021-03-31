@@ -19,6 +19,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,6 +54,7 @@ internal class BugReportActivity: AppCompatActivity() {
 
     private lateinit var fieldItemsAdapter: FieldAdapter
     private val fieldItems = mutableListOf<FieldItem>()
+    private var imagePath = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +66,7 @@ internal class BugReportActivity: AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val previewScale = intent.getFloatExtra(BugReporterConstants.EXTRA_PREVIEW_SCALE, 1f)
-        val imagePath = intent.getStringExtra(BugReporterConstants.EXTRA_IMAGE_PATH)
+        imagePath = intent.getStringExtra(BugReporterConstants.EXTRA_IMAGE_PATH) ?: ""
         val imageWidth = (intent.getIntExtra(BugReporterConstants.EXTRA_IMAGE_WIDTH, 0) * previewScale).toInt()
         val imageHeight = (intent.getIntExtra(BugReporterConstants.EXTRA_IMAGE_HEIGHT, 0) * previewScale).toInt()
 
@@ -278,20 +280,23 @@ internal class BugReportActivity: AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val intent = createReport()
-        startActivityForResult(Intent.createChooser(intent, "Chooser Title"), REQUEST_CODE_SEND)
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.chooser_title)), REQUEST_CODE_SEND)
         return true
     }
 
     private fun createReport(): Intent {
         val builder = StringBuilder()
-        builder.append("${getString(R.string.bug_reporting_description_label)}: ${bugReporterDescription.text}")
+        builder.append("${getString(R.string.bug_reporting_description_label)}: ${bugReporterDescription.text}\n")
         fieldItems.filter { it.enabled }.forEach {
             builder.append("${it.label}:${it.text}\n")
         }
-        return Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+        return Intent(Intent.ACTION_SEND).apply {
+            type = "plain/text"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReporter.developerEmailAddress))
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_email_object))
             putExtra(Intent.EXTRA_TEXT, builder.trim().toString())
+            val imageUri = FileProvider.getUriForFile(this@BugReportActivity,"com.github.kaygenzo.bugreporter", File(imagePath))
+            putExtra(Intent.EXTRA_STREAM, imageUri)
         }
     }
 

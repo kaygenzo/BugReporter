@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -17,6 +16,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
+import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -49,6 +49,7 @@ object BugReporter {
     private var currentActivity: WeakReference<Activity>? = null
     var developerEmailAddress: String? = null
     val reportingMethods: MutableList<ReportMethod> = mutableListOf()
+    private val debugTree: Timber.Tree = Timber.DebugTree()
 
     class Builder {
 
@@ -158,6 +159,9 @@ object BugReporter {
 
     fun init(application: Application) {
         Instacapture.enableLogging(true)
+        if (BuildConfig.DEBUG) {
+            Timber.plant(debugTree)
+        }
         initTrackers(application)
     }
 
@@ -199,7 +203,7 @@ object BugReporter {
         activityTracker = object: Application.ActivityLifecycleCallbacks {
 
             override fun onActivityResumed(activity: Activity) {
-                Log.d(TAG, "onActivityResumed :: activity=$activity")
+                Timber.d("onActivityResumed :: activity=$activity")
                 val oldIsFromReportingTool = currentActivity?.get() is PaintActivity || currentActivity?.get() is BugReportActivity
                 val newIsFromReportingTool = activity is PaintActivity || activity is BugReportActivity
                 currentActivity = WeakReference(activity)
@@ -213,7 +217,7 @@ object BugReporter {
             }
 
             override fun onActivityPaused(activity: Activity) {
-                Log.d(TAG, "onActivityPaused :: activity=$activity")
+                Timber.d("onActivityPaused :: activity=$activity")
             }
 
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
@@ -226,13 +230,13 @@ object BugReporter {
         lifecycleListener = object: LifecycleObserver {
             @OnLifecycleEvent(Lifecycle.Event.ON_START)
             fun onMoveToForeground() {
-                Log.d("BugReporter", "Returning to foreground…")
+                Timber.d("Returning to foreground…")
                 startReportingTool(application)
             }
 
             @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
             fun onMoveToBackground() {
-                Log.d("BugReporter", "Moving to background…")
+                Timber.d("Moving to background…")
                 stopReportingTool(application)
             }
         }

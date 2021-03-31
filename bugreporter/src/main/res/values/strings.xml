@@ -27,4 +27,6 @@
 
     <string name="action_send_report">Send report</string>
     <string name="report_email_object">New issue reported</string>
+    <string name="chooser_title">Send with&#8230;</string>
+
 </resources>
