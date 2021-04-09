@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.ConnectivityManager
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Build
@@ -23,6 +22,9 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.github.kaygenzo.bugreporter.BugReporter
+import com.github.kaygenzo.bugreporter.BugReporterConstants
+import com.github.kaygenzo.bugreporter.R
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_bug_report.*
 import java.io.File

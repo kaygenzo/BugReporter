@@ -6,10 +6,10 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
     <application>
-        <activity android:name="com.github.kaygenzo.bugreporter.BugReportActivity"/>
-        <activity android:name="com.github.kaygenzo.bugreporter.PaintActivity"/>
+        <activity android:name="com.github.kaygenzo.bugreporter.screens.BugReportActivity"/>
+        <activity android:name="com.github.kaygenzo.bugreporter.screens.PaintActivity"/>
 
-        <service android:name="com.github.kaygenzo.bugreporter.FloatingWidgetService"
+        <service android:name="com.github.kaygenzo.bugreporter.service.FloatingWidgetService"
             android:enabled="true"
             android:exported="false"/>
 

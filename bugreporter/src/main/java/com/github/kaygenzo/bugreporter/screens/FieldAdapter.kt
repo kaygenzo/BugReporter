@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.screens
 
 import android.graphics.Color
 import android.view.View

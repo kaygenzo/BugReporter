@@ -10,6 +10,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.github.kaygenzo.bugreporter.screens.BugReportActivity
+import com.github.kaygenzo.bugreporter.screens.FieldType
+import com.github.kaygenzo.bugreporter.screens.PaintActivity
+import com.github.kaygenzo.bugreporter.service.FloatingWidgetService
 import com.tarek360.instacapture.Instacapture
 import com.tarek360.instacapture.listener.SimpleScreenCapturingListener
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers

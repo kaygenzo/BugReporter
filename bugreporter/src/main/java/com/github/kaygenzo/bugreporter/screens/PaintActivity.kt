@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.screens
 
 import android.content.Context
 import android.content.Intent
@@ -7,6 +7,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.github.kaygenzo.bugreporter.BugReporterConstants
+import com.github.kaygenzo.bugreporter.R
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_paint_screen.*
 import java.io.BufferedOutputStream

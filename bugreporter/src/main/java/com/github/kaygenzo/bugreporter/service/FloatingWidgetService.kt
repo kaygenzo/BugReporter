@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.service
 
 import android.annotation.SuppressLint
 import android.app.Service
@@ -8,13 +8,17 @@ import android.graphics.Point
 import android.os.Build
 import android.os.IBinder
 import android.view.*
-import com.github.kaygenzo.bugreporter.shake.ShakeDetector
+import com.github.kaygenzo.bugreporter.BugReporter
+import com.github.kaygenzo.bugreporter.R
+import com.github.kaygenzo.bugreporter.ReportMethod
+import com.github.kaygenzo.bugreporter.shake.OnShakeListener
+import com.github.kaygenzo.bugreporter.shake.ShakeDetectorKotlin
 import kotlinx.android.synthetic.main.floating_widget.view.*
 import timber.log.Timber
 import kotlin.math.abs
 
 
-internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener {
+internal class FloatingWidgetService : Service(), OnShakeListener {
 
     companion object {
         const val ACTION_ENTER_REPORT = "com.telen.library.action.ENTER_REPORT"
@@ -26,6 +30,7 @@ internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener 
     private var mOverlayView: View? = null
     private var floatingWidget: View? = null
     private var shaked = false
+    private var shakeDetector: ShakeDetectorKotlin? = null
 
     private val params: WindowManager.LayoutParams
 
@@ -95,8 +100,8 @@ internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener 
             }
 
             if(hasShakeMethod()) {
-                ShakeDetector.create(this, this)
-                ShakeDetector.start()
+                shakeDetector = ShakeDetectorKotlin.create(this, this)
+                shakeDetector?.start()
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -108,7 +113,7 @@ internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener 
             (getSystemService(WINDOW_SERVICE) as? WindowManager)?.removeView(mOverlayView)
         }
         if(hasShakeMethod()) {
-            ShakeDetector.destroy()
+            shakeDetector?.stop()
         }
     }
 
@@ -193,7 +198,7 @@ internal class FloatingWidgetService : Service(), ShakeDetector.OnShakeListener 
         }
     }
 
-    override fun OnShake() {
+    override fun onShake() {
         synchronized(shaked) {
             if(!shaked) {
                 shaked = true
