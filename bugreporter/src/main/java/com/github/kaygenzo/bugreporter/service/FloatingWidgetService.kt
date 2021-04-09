@@ -13,6 +13,7 @@ import com.github.kaygenzo.bugreporter.R
 import com.github.kaygenzo.bugreporter.ReportMethod
 import com.github.kaygenzo.bugreporter.shake.OnShakeListener
 import com.github.kaygenzo.bugreporter.shake.ShakeDetectorKotlin
+import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import kotlinx.android.synthetic.main.floating_widget.view.*
 import timber.log.Timber
 import kotlin.math.abs
@@ -85,7 +86,7 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
                 }
             }
         } ?: run {
-            if(hasFloatingButtonMethod()) {
+            if(hasFloatingButtonMethod() && PermissionsUtils.hasPermissionOverlay(this)) {
                 (getSystemService(WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
                     windowManager.addView(mOverlayView, params)
                     val layout = mOverlayView?.floating_widget_root
@@ -109,7 +110,7 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        if(hasFloatingButtonMethod()) {
+        if(hasFloatingButtonMethod() && PermissionsUtils.hasPermissionOverlay(this)) {
             (getSystemService(WINDOW_SERVICE) as? WindowManager)?.removeView(mOverlayView)
         }
         if(hasShakeMethod()) {

@@ -14,6 +14,7 @@ import com.github.kaygenzo.bugreporter.screens.BugReportActivity
 import com.github.kaygenzo.bugreporter.screens.FieldType
 import com.github.kaygenzo.bugreporter.screens.PaintActivity
 import com.github.kaygenzo.bugreporter.service.FloatingWidgetService
+import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import com.tarek360.instacapture.Instacapture
 import com.tarek360.instacapture.listener.SimpleScreenCapturingListener
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -98,6 +99,17 @@ object BugReporter {
         }
     }
 
+    fun askOverlayPermission(activity: Activity, requestCode: Int) {
+        PermissionsUtils.askOverlayPermission(activity = activity, requestCode)
+    }
+
+    fun init(application: Application) {
+        if (BuildConfig.DEBUG) {
+            Timber.plant(debugTree)
+        }
+        initTrackers(application)
+    }
+
     fun startReport(activity: Activity) {
         hideFloatingButton(activity)
         Completable.timer(500, TimeUnit.MILLISECONDS).subscribe {
@@ -161,20 +173,8 @@ object BugReporter {
         }
     }
 
-    fun init(application: Application) {
-        Instacapture.enableLogging(true)
-        if (BuildConfig.DEBUG) {
-            Timber.plant(debugTree)
-        }
-        initTrackers(application)
-    }
-
     private fun startReportingTool(applicationContext: Context) {
-        //if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M/* || Settings.canDrawOverlays(this@MainActivity)*/) {
         applicationContext.startService(getServiceIntent(applicationContext))
-        //} else {
-        //TODO
-        //}
     }
 
     private fun stopReportingTool(applicationContext: Context) {
