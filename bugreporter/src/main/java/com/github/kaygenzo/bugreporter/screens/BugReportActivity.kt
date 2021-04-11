@@ -2,6 +2,7 @@ package com.github.kaygenzo.bugreporter.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
@@ -25,8 +26,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.kaygenzo.bugreporter.BugReporter
 import com.github.kaygenzo.bugreporter.BugReporterConstants
 import com.github.kaygenzo.bugreporter.R
+import com.github.kaygenzo.bugreporter.ReportResult
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_bug_report.*
+import org.json.JSONObject
 import java.io.File
 import java.util.*
 
@@ -282,22 +285,34 @@ internal class BugReportActivity: AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val intent = createReport()
-        startActivityForResult(Intent.createChooser(intent, getString(R.string.chooser_title)), REQUEST_CODE_SEND)
+        when(BugReporter.reportResult) {
+            ReportResult.CUSTOM -> {
+                setResult(Activity.RESULT_OK, intent)
+                finish()
+            }
+            else -> {
+                startActivityForResult(Intent.createChooser(intent, getString(R.string.chooser_title)), REQUEST_CODE_SEND)
+            }
+        }
         return true
     }
 
     private fun createReport(): Intent {
-        val builder = StringBuilder()
-        builder.append("${getString(R.string.bug_reporting_description_label)}: ${bugReporterDescription.text}\n")
-        fieldItems.filter { it.enabled }.forEach {
-            builder.append("${it.label}:${it.text}\n")
+
+        val resultObject = JSONObject().apply {
+            put(BugReporterConstants.KEY_DESCRIPTION, bugReporterDescription.text)
         }
+
+        fieldItems.filter { it.enabled }.forEach {
+            resultObject.put(it.type.name.toLowerCase(), it.text)
+        }
+
         return Intent(Intent.ACTION_SEND).apply {
             type = "plain/text"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReporter.developerEmailAddress))
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_email_object))
-            putExtra(Intent.EXTRA_TEXT, builder.trim().toString())
-            val imageUri = FileProvider.getUriForFile(this@BugReportActivity,"com.github.kaygenzo.bugreporter", File(imagePath))
+            putExtra(Intent.EXTRA_TEXT, resultObject.toString().trim())
+            val imageUri = FileProvider.getUriForFile(this@BugReportActivity, BugReporterConstants.FILE_AUTHORITY, File(imagePath))
             putExtra(Intent.EXTRA_STREAM, imageUri)
         }
     }

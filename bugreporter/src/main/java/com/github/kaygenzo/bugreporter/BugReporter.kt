@@ -37,6 +37,10 @@ enum class ReportMethod {
     FLOATING_BUTTON
 }
 
+enum class ReportResult {
+    EMAIL, CUSTOM
+}
+
 object BugReporter {
 
     private const val TAG = "BugReporter"
@@ -52,9 +56,11 @@ object BugReporter {
     private var activityTracker: Application.ActivityLifecycleCallbacks? = null
     private var lifecycleListener: LifecycleObserver? = null
     private var currentActivity: WeakReference<Activity>? = null
-    var developerEmailAddress: String? = null
-    val reportingMethods: MutableList<ReportMethod> = mutableListOf()
+    internal var developerEmailAddress: String? = null
+    internal val reportingMethods: MutableList<ReportMethod> = mutableListOf()
     private val debugTree: Timber.Tree = Timber.DebugTree()
+    internal var reportResult: ReportResult = ReportResult.EMAIL
+    internal var requestCode = 0
 
     class Builder {
 
@@ -110,6 +116,11 @@ object BugReporter {
         initTrackers(application)
     }
 
+    fun setReportResult(reportResult: ReportResult, requestCode: Int) {
+        BugReporter.reportResult = reportResult
+        BugReporter.requestCode = requestCode
+    }
+
     fun startReport(activity: Activity) {
         hideFloatingButton(activity)
         Completable.timer(500, TimeUnit.MILLISECONDS).subscribe {
@@ -121,16 +132,19 @@ object BugReporter {
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            activity.startActivity(
-                                    BugReportActivity.getIntent(
-                                            activity,
-                                            it.absolutePath,
-                                            width,
-                                            height,
-                                            previewScale,
-                                            reportFields
-                                    )
+                            val intent = BugReportActivity.getIntent(
+                                activity,
+                                it.absolutePath,
+                                width,
+                                height,
+                                previewScale,
+                                reportFields
                             )
+
+                            when(reportResult) {
+                                ReportResult.EMAIL -> activity.startActivity(intent)
+                                ReportResult.CUSTOM -> activity.startActivityForResult(intent, requestCode)
+                            }
                         }, {
                             //TODO
                             it.printStackTrace()
@@ -199,7 +213,7 @@ object BugReporter {
         return Intent(context, FloatingWidgetService::class.java)
     }
 
-    fun getCurrentActivity(): Activity? {
+    internal fun getCurrentActivity(): Activity? {
         return currentActivity?.get()
     }
 
