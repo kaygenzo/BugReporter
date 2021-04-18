@@ -3,7 +3,6 @@ package com.telen.library.bugreporter
 import android.app.Application
 import com.github.kaygenzo.bugreporter.BugReporter
 import com.github.kaygenzo.bugreporter.ReportMethod
-import com.github.kaygenzo.bugreporter.ReportResult
 
 class DemoApplication: Application() {
 
