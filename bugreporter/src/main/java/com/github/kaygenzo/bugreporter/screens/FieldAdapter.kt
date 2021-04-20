@@ -38,7 +38,13 @@ internal class FieldAdapter(private val items: List<FieldItem>): RecyclerView.Ad
         val item = items[position]
         holder.fieldView.fieldText.text = item.text
         holder.fieldView.fieldLabel.text = item.label
-        holder.fieldView.fieldSwitch.isChecked = item.enabled
+        holder.fieldView.fieldSwitch.apply {
+            setOnCheckedChangeListener(null)
+            isChecked = item.enabled
+            setOnCheckedChangeListener { _, isChecked ->
+                item.enabled = isChecked
+            }
+        }
         if(item.visible) {
             holder.fieldView.fieldSwitch.visibility =  View.VISIBLE
             holder.fieldView.fieldText.setTextColor(Color.BLACK)

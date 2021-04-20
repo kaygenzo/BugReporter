@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.github.kaygenzo.bugreporter.UnsupportedSensorException
+import java.util.*
 
 internal data class SensorBundle(val mXAcc: Float, val mYAcc: Float, val mZAcc: Float, val mTimestamp: Long)
 
@@ -89,14 +90,14 @@ internal interface OnShakeListener {
  */
 internal class ShakeDetectorKotlin
 private constructor(
-        private var mThresholdAcceleration: Float = DEFAULT_THRESHOLD_ACCELERATION,
-        private var mThresholdShakeNumber: Float = DEFAULT_THRESHOLD_SHAKE_NUMBER,
-        private val mListener: OnShakeListener,
-        private val sensorManager: SensorManager,
-        private val sensor: Sensor
+    private var mThresholdAcceleration: Float = DEFAULT_THRESHOLD_ACCELERATION,
+    private var mThresholdShakeNumber: Float = DEFAULT_THRESHOLD_SHAKE_NUMBER,
+    private val mListener: OnShakeListener,
+    private val sensorManager: SensorManager,
+    private val sensor: Sensor
 ): SensorEventListener {
 
-    private val mSensorBundles: MutableList<SensorBundle> = mutableListOf()
+    private val mSensorBundles: MutableList<SensorBundle> = Collections.synchronizedList(mutableListOf())
 
     companion object {
         private const val DEFAULT_THRESHOLD_ACCELERATION = 2.0f
@@ -171,8 +172,8 @@ private constructor(
 
                     }
                 }
+                performCheck()
             }
-            performCheck()
         }
     }
 
@@ -181,50 +182,50 @@ private constructor(
     }
 
     private fun performCheck() {
-        synchronized(mSensorBundles) {
-            val vector = intArrayOf(0, 0, 0)
-            val matrix = arrayOf(intArrayOf(0, 0), intArrayOf(0, 0), intArrayOf(0, 0))
-            for (sensorBundle in mSensorBundles) {
-                if (sensorBundle.mXAcc > mThresholdAcceleration && vector[0] < 1) {
-                    vector[0] = 1
-                    matrix[0][0]++
-                }
-                if (sensorBundle.mXAcc < -mThresholdAcceleration && vector[0] > -1) {
-                    vector[0] = -1
-                    matrix[0][1]++
-                }
-                if (sensorBundle.mYAcc > mThresholdAcceleration && vector[1] < 1) {
-                    vector[1] = 1
-                    matrix[1][0]++
-                }
-                if (sensorBundle.mYAcc < -mThresholdAcceleration && vector[1] > -1) {
-                    vector[1] = -1
-                    matrix[1][1]++
-                }
-                if (sensorBundle.mZAcc > mThresholdAcceleration && vector[2] < 1) {
-                    vector[2] = 1
-                    matrix[2][0]++
-                }
-                if (sensorBundle.mZAcc < -mThresholdAcceleration && vector[2] > -1) {
-                    vector[2] = -1
-                    matrix[2][1]++
-                }
+        val vector = intArrayOf(0, 0, 0)
+        val matrix = arrayOf(intArrayOf(0, 0), intArrayOf(0, 0), intArrayOf(0, 0))
+        for (sensorBundle in mSensorBundles) {
+            if (sensorBundle.mXAcc > mThresholdAcceleration && vector[0] < 1) {
+                vector[0] = 1
+                matrix[0][0]++
             }
-            for (axis in matrix) {
-                for (direction in axis) {
-                    if (direction < mThresholdShakeNumber) {
-                        return
-                    }
-                }
+            if (sensorBundle.mXAcc < -mThresholdAcceleration && vector[0] > -1) {
+                vector[0] = -1
+                matrix[0][1]++
             }
-            mSensorBundles.clear()
+            if (sensorBundle.mYAcc > mThresholdAcceleration && vector[1] < 1) {
+                vector[1] = 1
+                matrix[1][0]++
+            }
+            if (sensorBundle.mYAcc < -mThresholdAcceleration && vector[1] > -1) {
+                vector[1] = -1
+                matrix[1][1]++
+            }
+            if (sensorBundle.mZAcc > mThresholdAcceleration && vector[2] < 1) {
+                vector[2] = 1
+                matrix[2][0]++
+            }
+            if (sensorBundle.mZAcc < -mThresholdAcceleration && vector[2] > -1) {
+                vector[2] = -1
+                matrix[2][1]++
+            }
         }
+        for (axis in matrix) {
+            for (direction in axis) {
+                if (direction < mThresholdShakeNumber) {
+                    return
+                }
+            }
+        }
+        mSensorBundles.clear()
         mListener.onShake()
     }
 
     private fun setConfiguration(sensibility: Float, shakeNumber: Int) {
         mThresholdAcceleration = sensibility
         mThresholdShakeNumber = shakeNumber.toFloat()
-        synchronized(mSensorBundles) { mSensorBundles.clear() }
+        synchronized(mSensorBundles) {
+            mSensorBundles.clear()
+        }
     }
 }
