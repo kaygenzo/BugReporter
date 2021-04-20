@@ -26,7 +26,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.kaygenzo.bugreporter.BugReporter
 import com.github.kaygenzo.bugreporter.BugReporterConstants
 import com.github.kaygenzo.bugreporter.R
-import com.github.kaygenzo.bugreporter.ReportResult
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_bug_report.*
 import org.json.JSONObject
@@ -36,8 +35,6 @@ import java.util.*
 internal class BugReportActivity: AppCompatActivity() {
 
     companion object {
-
-        private const val REQUEST_CODE_SEND = 0
 
         fun getIntent(
             context: Context,
@@ -285,15 +282,9 @@ internal class BugReportActivity: AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val intent = createReport()
-        when(BugReporter.reportResult) {
-            ReportResult.CUSTOM -> {
-                setResult(Activity.RESULT_OK, intent)
-                finish()
-            }
-            else -> {
-                startActivityForResult(Intent.createChooser(intent, getString(R.string.chooser_title)), REQUEST_CODE_SEND)
-            }
-        }
+        BugReporter.resultSubject.onNext(intent)
+        setResult(Activity.RESULT_OK, intent)
+        finish()
         return true
     }
 
@@ -314,13 +305,7 @@ internal class BugReportActivity: AppCompatActivity() {
             putExtra(Intent.EXTRA_TEXT, resultObject.toString().trim())
             val imageUri = FileProvider.getUriForFile(this@BugReportActivity, BugReporterConstants.FILE_AUTHORITY, File(imagePath))
             putExtra(Intent.EXTRA_STREAM, imageUri)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == REQUEST_CODE_SEND) {
-            finish()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }
 }

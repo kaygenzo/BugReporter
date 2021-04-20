@@ -17,10 +17,10 @@ import com.github.kaygenzo.bugreporter.service.FloatingWidgetService
 import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import com.tarek360.instacapture.Instacapture
 import com.tarek360.instacapture.listener.SimpleScreenCapturingListener
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.PublishSubject
 import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
@@ -35,10 +35,6 @@ import java.util.concurrent.TimeUnit
 enum class ReportMethod {
     SHAKE,
     FLOATING_BUTTON
-}
-
-enum class ReportResult {
-    EMAIL, CUSTOM
 }
 
 object BugReporter {
@@ -56,11 +52,12 @@ object BugReporter {
     private var activityTracker: Application.ActivityLifecycleCallbacks? = null
     private var lifecycleListener: LifecycleObserver? = null
     private var currentActivity: WeakReference<Activity>? = null
+
     internal var developerEmailAddress: String? = null
     internal val reportingMethods: MutableList<ReportMethod> = mutableListOf()
+    internal val resultSubject = PublishSubject.create<Intent>()
+
     private val debugTree: Timber.Tree = Timber.DebugTree()
-    internal var reportResult: ReportResult = ReportResult.EMAIL
-    internal var requestCode = 0
 
     class Builder {
 
@@ -100,6 +97,11 @@ object BugReporter {
             return this
         }
 
+        fun observeResult(observer: Observer<Intent>): Builder {
+            resultSubject.subscribe(observer)
+            return this
+        }
+
         fun build(): BugReporter {
             return BugReporter
         }
@@ -116,39 +118,44 @@ object BugReporter {
         initTrackers(application)
     }
 
-    fun setReportResult(reportResult: ReportResult, requestCode: Int) {
-        BugReporter.reportResult = reportResult
-        BugReporter.requestCode = requestCode
+    fun startReport(activity: Activity) {
+        Completable.defer {
+            hideFloatingButton(activity)
+            Completable.timer(500, TimeUnit.MILLISECONDS)
+        }
+            .andThen(captureScreen(activity))
+            .flatMap { bitmap ->
+                val width = bitmap.width
+                val height = bitmap.height
+                getScreenshotFile(context = activity, bitmap = bitmap)
+                    .map {
+                        val imagePath = it.absolutePath
+                        BugReportActivity.getIntent(
+                            activity,
+                            imagePath,
+                            width,
+                            height,
+                            previewScale,
+                            reportFields
+                        )
+                    }
+            }.subscribe({
+                activity.startActivity(it)
+            }, {
+                //TODO
+                it.printStackTrace()
+            })
     }
 
-    fun startReport(activity: Activity) {
-        hideFloatingButton(activity)
-        Completable.timer(500, TimeUnit.MILLISECONDS).subscribe {
+    private fun captureScreen(activity: Activity): Single<Bitmap> {
+        return Single.create { emitter ->
             Instacapture.capture(activity, object : SimpleScreenCapturingListener() {
                 override fun onCaptureComplete(bitmap: Bitmap) {
-                    val width = bitmap.width
-                    val height = bitmap.height
-                    getScreenshotFile(context = activity, bitmap = bitmap)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({
-                            val intent = BugReportActivity.getIntent(
-                                activity,
-                                it.absolutePath,
-                                width,
-                                height,
-                                previewScale,
-                                reportFields
-                            )
+                    emitter.onSuccess(bitmap)
+                }
 
-                            when(reportResult) {
-                                ReportResult.EMAIL -> activity.startActivity(intent)
-                                ReportResult.CUSTOM -> activity.startActivityForResult(intent, requestCode)
-                            }
-                        }, {
-                            //TODO
-                            it.printStackTrace()
-                        })
+                override fun onCaptureFailed(e: Throwable) {
+                    emitter.onError(e)
                 }
             })
         }
