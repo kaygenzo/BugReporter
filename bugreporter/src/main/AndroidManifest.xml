@@ -14,7 +14,7 @@
             android:exported="false"/>
 
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name=".provider.ScreenshotProvider"
             android:authorities="com.github.kaygenzo.bugreporter"
             android:exported="false"
             android:grantUriPermissions="true">
