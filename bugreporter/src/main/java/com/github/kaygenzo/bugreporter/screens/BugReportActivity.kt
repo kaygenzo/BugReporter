@@ -316,7 +316,8 @@ internal class BugReportActivity: AppCompatActivity() {
             putExtra(Intent.EXTRA_EMAIL, arrayOf(BugReporter.developerEmailAddress))
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_email_object))
             putExtra(Intent.EXTRA_TEXT, resultObject.toString().trim())
-            val imageUri = FileProvider.getUriForFile(this@BugReportActivity, BugReporterConstants.FILE_AUTHORITY, File(imagePath))
+            val authority = "${packageName}${BugReporterConstants.FILE_AUTHORITY_SUFFIX}"
+            val imageUri = FileProvider.getUriForFile(this@BugReportActivity, authority, File(imagePath))
             putExtra(Intent.EXTRA_STREAM, imageUri)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }

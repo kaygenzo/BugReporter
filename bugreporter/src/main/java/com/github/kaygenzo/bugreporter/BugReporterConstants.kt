@@ -10,6 +10,6 @@ internal class BugReporterConstants {
 
         const val KEY_DESCRIPTION = "description"
 
-        const val FILE_AUTHORITY = "com.github.kaygenzo.bugreporter"
+        const val FILE_AUTHORITY_SUFFIX = ".bugreporter"
     }
 }
