@@ -15,7 +15,7 @@
 
         <provider
             android:name=".provider.ScreenshotProvider"
-            android:authorities="com.github.kaygenzo.bugreporter"
+            android:authorities="${applicationId}.bugreporter"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

@@ -9,6 +9,7 @@ import kotlinx.android.synthetic.main.view_item_field.view.*
 
 enum class FieldType {
     DATE_TIME,
+    DATE_TIME_MILLIS,
     MANUFACTURER,
     BRAND,
     MODEL,

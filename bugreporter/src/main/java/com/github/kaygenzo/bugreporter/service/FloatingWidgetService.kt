@@ -8,6 +8,7 @@ import android.graphics.Point
 import android.os.Build
 import android.os.IBinder
 import android.view.*
+import android.widget.ImageView
 import com.github.kaygenzo.bugreporter.BugReporter
 import com.github.kaygenzo.bugreporter.R
 import com.github.kaygenzo.bugreporter.ReportMethod
@@ -29,7 +30,7 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
     }
 
     private var mOverlayView: View? = null
-    private var floatingWidget: View? = null
+    private var floatingWidget: ImageView? = null
     private var shaked = false
     private var shakeDetector: ShakeDetectorKotlin? = null
 
@@ -64,7 +65,9 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
     override fun onCreate() {
         super.onCreate()
         mOverlayView = LayoutInflater.from(this).inflate(R.layout.floating_widget, null)
-        floatingWidget = mOverlayView?.fabHead
+        floatingWidget = mOverlayView?.fabHead?.apply {
+            setImageResource(BugReporter.reportFloatingImage)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

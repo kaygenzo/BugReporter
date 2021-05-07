@@ -11,6 +11,7 @@
     <string name="bug_reporting_battery_charging">Charging</string>
 
     <string name="label_field_date_and_time">Date and time</string>
+    <string name="label_field_date_and_time_millis">Date and time millis</string>
     <string name="label_field_manufacturer">Manufacturer</string>
     <string name="label_field_brand">Brand</string>
     <string name="label_field_model">Model</string>

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import androidx.annotation.DrawableRes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -56,6 +57,7 @@ object BugReporter {
     internal var developerEmailAddress: String? = null
     internal val reportingMethods: MutableList<ReportMethod> = mutableListOf()
     internal val resultSubject = PublishSubject.create<Intent>()
+    internal @DrawableRes var reportFloatingImage = R.drawable.ic_baseline_bug_report_24
 
     private val debugTree: Timber.Tree = Timber.DebugTree()
 
@@ -99,6 +101,11 @@ object BugReporter {
 
         fun observeResult(observer: Observer<Intent>): Builder {
             resultSubject.subscribe(observer)
+            return this
+        }
+
+        fun setReportFloatingImage(@DrawableRes image: Int): Builder {
+            reportFloatingImage = image
             return this
         }
 

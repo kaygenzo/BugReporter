@@ -30,6 +30,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_bug_report.*
 import org.json.JSONObject
 import java.io.File
+import java.time.Instant
 import java.util.*
 
 internal class BugReportActivity: AppCompatActivity() {
@@ -72,6 +73,19 @@ internal class BugReportActivity: AppCompatActivity() {
         val imageWidth = (intent.getIntExtra(BugReporterConstants.EXTRA_IMAGE_WIDTH, 0) * previewScale).toInt()
         val imageHeight = (intent.getIntExtra(BugReporterConstants.EXTRA_IMAGE_HEIGHT, 0) * previewScale).toInt()
 
+        val now: Long
+        val date: String
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Instant.now().apply {
+                now = this.toEpochMilli()
+                date = Date.from(this).toString()
+            }
+        }
+        else {
+            now = Calendar.getInstance().timeInMillis
+            date = Date(now).toString()
+        }
+
         val fieldItems: List<FieldItem> = intent.getIntArrayExtra(BugReporterConstants.EXTRA_FIELDS)
                 ?.map { FieldType.values()[it] }
                 ?.map {
@@ -79,7 +93,12 @@ internal class BugReportActivity: AppCompatActivity() {
                         FieldType.DATE_TIME -> FieldItem(
                                 it,
                                 getString(R.string.label_field_date_and_time),
-                                Date().toString()
+                                date
+                        )
+                        FieldType.DATE_TIME_MILLIS -> FieldItem(
+                                it,
+                                getString(R.string.label_field_date_and_time_millis),
+                                now.toString()
                         )
                         FieldType.MANUFACTURER -> FieldItem(
                                 it,
