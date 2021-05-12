@@ -217,6 +217,8 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
     }
 
     private fun showFloatingButton() {
-        mOverlayView?.floating_widget_root?.visibility = View.VISIBLE
+        if(hasFloatingButtonMethod()) {
+            mOverlayView?.floating_widget_root?.visibility = View.VISIBLE
+        }
     }
 }
