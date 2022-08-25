@@ -30,4 +30,10 @@
     <string name="report_email_object">New issue reported</string>
     <string name="chooser_title">Send with&#8230;</string>
 
+    <string name="bug_reporter_channel_id">bug_reporter_channel_id</string>
+    <string name="bug_reporter_channel_name">Bug reporter</string>
+    <string name="bug_reporter_notification_title">Bug reporter</string>
+
+    <string name="bug_reporter_notification_content">Report in progress</string>
+
 </resources>

@@ -7,21 +7,22 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import com.github.kaygenzo.bugreporter.BugReporterConstants
 import com.github.kaygenzo.bugreporter.R
+import com.github.kaygenzo.bugreporter.internal.InternalConstants
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_paint_screen.*
+import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-internal class PaintActivity: AppCompatActivity() {
+internal class PaintActivity : AppCompatActivity() {
 
     companion object {
         fun getIntent(context: Context, imagePath: String): Intent {
             return Intent(context, PaintActivity::class.java).apply {
-                putExtra(BugReporterConstants.EXTRA_IMAGE_PATH, imagePath)
+                putExtra(InternalConstants.EXTRA_IMAGE_PATH, imagePath)
             }
         }
     }
@@ -30,7 +31,7 @@ internal class PaintActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_paint_screen)
 
-        val imagePath = intent.getStringExtra(BugReporterConstants.EXTRA_IMAGE_PATH)?.also { path ->
+        val imagePath = intent.getStringExtra(InternalConstants.EXTRA_IMAGE_PATH)?.also { path ->
             Picasso.get().load(File(path)).into(paintCanvas)
         }
 
@@ -51,25 +52,15 @@ internal class PaintActivity: AppCompatActivity() {
         paintActionCheck.setOnClickListener {
             imagePath?.let { path ->
                 paintCanvas.drawable?.toBitmap()?.let { bitmapImage ->
-                    var outputStream: BufferedOutputStream? = null
                     try {
-                        outputStream = BufferedOutputStream(FileOutputStream(File(path)))
-                        bitmapImage.compress(Bitmap.CompressFormat.JPEG,100, outputStream)
-                        outputStream.flush()
-                        finish()
-                    }
-                    catch (e: IOException) {
-                        //TODO
-                        e.printStackTrace()
-                        finish()
-                    }
-                    finally {
-                        try {
-                            outputStream?.close()
-                        } catch (exception: IOException) {
-                            //TODO
-                            exception.printStackTrace()
+                        BufferedOutputStream(FileOutputStream(File(path))).use {
+                            bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                            it.flush()
+                            finish()
                         }
+                    } catch (e: IOException) {
+                        Timber.e(e)
+                        finish()
                     }
                 } ?: let {
                     //TODO

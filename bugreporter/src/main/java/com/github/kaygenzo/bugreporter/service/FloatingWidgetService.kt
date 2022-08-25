@@ -9,12 +9,13 @@ import android.os.Build
 import android.os.IBinder
 import android.view.*
 import android.widget.ImageView
-import com.github.kaygenzo.bugreporter.BugReporter
 import com.github.kaygenzo.bugreporter.R
-import com.github.kaygenzo.bugreporter.ReportMethod
+import com.github.kaygenzo.bugreporter.api.ReportMethod
+import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.shake.OnShakeListener
 import com.github.kaygenzo.bugreporter.shake.ShakeDetectorKotlin
 import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
+import com.github.kaygenzo.bugreporter.utils.startAsForeground
 import kotlinx.android.synthetic.main.floating_widget.view.*
 import timber.log.Timber
 import kotlin.math.abs
@@ -26,11 +27,14 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
         const val ACTION_ENTER_REPORT = "com.telen.library.action.ENTER_REPORT"
         const val ACTION_EXIT_REPORT = "com.telen.library.action.EXIT_REPORT"
         const val ACTION_ENABLE_FLOATING_BUTTON = "com.telen.library.action.ENABLE_FLOATING_BUTTON"
-        const val ACTION_DISABLE_FLOATING_BUTTON = "com.telen.library.action.DISABLE_FLOATING_BUTTON"
+        const val ACTION_DISABLE_FLOATING_BUTTON =
+            "com.telen.library.action.DISABLE_FLOATING_BUTTON"
+        const val NOTIFICATION_ID = 9876
     }
 
     private var mOverlayView: View? = null
     private var floatingWidget: ImageView? = null
+    private val mLock = Any()
     private var shaked = false
     private var shakeDetector: ShakeDetectorKotlin? = null
 
@@ -64,22 +68,31 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
+        startAsForeground(
+            getString(R.string.bug_reporter_channel_id),
+            getString(R.string.bug_reporter_channel_name),
+            NOTIFICATION_ID
+        )
         mOverlayView = LayoutInflater.from(this).inflate(R.layout.floating_widget, null)
         floatingWidget = mOverlayView?.fabHead?.apply {
-            setImageResource(BugReporter.reportFloatingImage)
+            setImageResource(BugReporterImpl.reportFloatingImage)
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.action?.let {
-            when(it) {
+            when (it) {
                 ACTION_ENTER_REPORT -> {
                     hideFloatingButton()
-                    shaked = true
+                    synchronized(mLock) {
+                        shaked = true
+                    }
                 }
                 ACTION_EXIT_REPORT -> {
                     showFloatingButton()
-                    shaked = false
+                    synchronized(mLock) {
+                        shaked = false
+                    }
                 }
                 ACTION_DISABLE_FLOATING_BUTTON -> {
                     stopSelf()
@@ -89,44 +102,59 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
                 }
             }
         } ?: run {
-            if(hasFloatingButtonMethod() && PermissionsUtils.hasPermissionOverlay(this)) {
-                (getSystemService(WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
-                    windowManager.addView(mOverlayView, params)
-                    val layout = mOverlayView?.floating_widget_root
-                    floatingWidget?.setOnTouchListener(
-                        FloatingButtonTouchListener(
-                            windowManager = windowManager,
-                            layout = layout,
-                            params = params
-                        )
-                    )
-                }
+            if (hasFloatingButtonMethod()) {
+                setFloatingWidget()
             }
-
-            if(hasShakeMethod()) {
+            if (hasShakeMethod()) {
                 shakeDetector = ShakeDetectorKotlin.create(this, this)
                 shakeDetector?.start()
+            }
+
+            if (!hasFloatingButtonMethod() && !hasShakeMethod()) {
+                stopSelf()
             }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if(hasFloatingButtonMethod() && PermissionsUtils.hasPermissionOverlay(this)) {
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setFloatingWidget() {
+        if (PermissionsUtils.hasPermissionOverlay(this)) {
+            (getSystemService(WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
+                windowManager.addView(mOverlayView, params)
+                val layout = mOverlayView?.floating_widget_root
+                val listener = FloatingButtonTouchListener(
+                    windowManager = windowManager,
+                    layout = layout,
+                    params = params
+                )
+                floatingWidget?.setOnTouchListener(listener)
+            }
+        }
+    }
+
+    private fun removeFloatingWidget() {
+        if (PermissionsUtils.hasPermissionOverlay(this)) {
             (getSystemService(WINDOW_SERVICE) as? WindowManager)?.removeView(mOverlayView)
         }
-        if(hasShakeMethod()) {
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (hasFloatingButtonMethod()) {
+            removeFloatingWidget()
+        }
+        if (hasShakeMethod()) {
             shakeDetector?.stop()
         }
     }
 
     private fun hasShakeMethod(): Boolean {
-        return BugReporter.reportingMethods.contains(ReportMethod.SHAKE)
+        return BugReporterImpl.reportingMethods.contains(ReportMethod.SHAKE)
     }
 
     private fun hasFloatingButtonMethod(): Boolean {
-        return BugReporter.reportingMethods.contains(ReportMethod.FLOATING_BUTTON)
+        return BugReporterImpl.reportingMethods.contains(ReportMethod.FLOATING_BUTTON)
     }
 
     inner class FloatingButtonTouchListener(
@@ -134,7 +162,7 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
         private val layout: View?,
         private val params: WindowManager.LayoutParams,
         private val size: Point = Point()
-    ): View.OnTouchListener {
+    ) : View.OnTouchListener {
 
         private var initialX = 0
         private var initialY = 0
@@ -142,7 +170,7 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
         private var initialTouchY = 0f
 
         init {
-            val display: Display = windowManager.defaultDisplay
+            val display = windowManager.defaultDisplay
             display.getSize(size)
         }
 
@@ -161,7 +189,8 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
                     return true
                 }
                 MotionEvent.ACTION_UP -> {
-                    //xDiff and yDiff contain the minor changes in position when the view is clicked.
+                    // xDiff and yDiff contain the minor changes in position when the view is
+                    // clicked.
                     val xDiff = event.rawX - initialTouchX
                     val yDiff = event.rawY - initialTouchY
 
@@ -195,16 +224,16 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
     }
 
     private fun launchReport() {
-        BugReporter.getCurrentActivity()?.let { activity ->
-            BugReporter.startReport(activity)
+        BugReporterImpl.getCurrentActivity()?.let { activity ->
+            BugReporterImpl.startReport(activity)
         } ?: run {
-            //TODO
+            Timber.e("No activity found to start report")
         }
     }
 
     override fun onShake() {
-        synchronized(shaked) {
-            if(!shaked) {
+        synchronized(mLock) {
+            if (!shaked) {
                 shaked = true
                 Timber.d("OnShake!")
                 launchReport()
@@ -217,7 +246,7 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
     }
 
     private fun showFloatingButton() {
-        if(hasFloatingButtonMethod()) {
+        if (hasFloatingButtonMethod()) {
             mOverlayView?.floating_widget_root?.visibility = View.VISIBLE
         }
     }

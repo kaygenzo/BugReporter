@@ -1,16 +1,21 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.internal
 
 import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.github.kaygenzo.bugreporter.BuildConfig
+import com.github.kaygenzo.bugreporter.R
+import com.github.kaygenzo.bugreporter.api.BugReporter
+import com.github.kaygenzo.bugreporter.api.ReportMethod
 import com.github.kaygenzo.bugreporter.screens.BugReportActivity
 import com.github.kaygenzo.bugreporter.screens.FieldType
 import com.github.kaygenzo.bugreporter.screens.PaintActivity
@@ -19,7 +24,6 @@ import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import com.tarek360.instacapture.Instacapture
 import com.tarek360.instacapture.listener.SimpleScreenCapturingListener
 import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.subjects.PublishSubject
 import timber.log.Timber
@@ -28,93 +32,29 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.ref.WeakReference
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-enum class ReportMethod {
-    SHAKE,
-    FLOATING_BUTTON
-}
+internal object BugReporterImpl : BugReporter {
 
-object BugReporter {
+    val reportFields = mutableListOf<FieldType>()
+    var compressionQuality = InternalConstants.DEFAULT_JPEG_COMPRESSION_QUALITY
+    var previewScale = InternalConstants.DEFAULT_PREVIEW_SCALE
+    var developerEmailAddress: String? = null
+    val reportingMethods: MutableList<ReportMethod> = mutableListOf()
+    val resultSubject = PublishSubject.create<Intent>()
 
-    private const val TAG = "BugReporter"
+    @DrawableRes
+    var reportFloatingImage = R.drawable.ic_baseline_bug_report_24
 
-    private const val SCREENSHOT_DIR = "screenshots"
-    private const val DEFAULT_JPEG_COMPRESSION_QUALITY = 75
-    private const val DEFAULT_PREVIEW_SCALE = 0.3f
+    var activityTracker: Application.ActivityLifecycleCallbacks? = null
+    var lifecycleListener: LifecycleObserver? = null
+    var currentActivity: WeakReference<Activity>? = null
 
-    private val reportFields = mutableListOf<FieldType>()
-    private var compressionQuality = DEFAULT_JPEG_COMPRESSION_QUALITY
-    private var previewScale = DEFAULT_PREVIEW_SCALE
+    private val debugTree = Timber.DebugTree()
 
-    private var activityTracker: Application.ActivityLifecycleCallbacks? = null
-    private var lifecycleListener: LifecycleObserver? = null
-    private var currentActivity: WeakReference<Activity>? = null
-
-    internal var developerEmailAddress: String? = null
-    internal val reportingMethods: MutableList<ReportMethod> = mutableListOf()
-    internal val resultSubject = PublishSubject.create<Intent>()
-    internal @DrawableRes var reportFloatingImage = R.drawable.ic_baseline_bug_report_24
-
-    private val debugTree: Timber.Tree = Timber.DebugTree()
-
-    class Builder {
-
-        fun setFields(fields: List<FieldType>?): Builder {
-            reportFields.apply {
-                clear()
-                fields?.let {
-                    addAll(it)
-                } ?: run {
-                    addAll(FieldType.values())
-                }
-
-            }
-            return this
-        }
-
-        fun setCompressionQuality(compressionQuality: Int): Builder {
-            BugReporter.compressionQuality = compressionQuality
-            return this
-        }
-
-        fun setImagePreviewScale(scale: Float): Builder {
-            previewScale = scale
-            return this
-        }
-
-        fun setEmail(email: String): Builder {
-            developerEmailAddress = email
-            return this
-        }
-
-        fun setReportMethods(methods: List<ReportMethod>): Builder {
-            reportingMethods.apply {
-                clear()
-                addAll(methods)
-            }
-            return this
-        }
-
-        fun observeResult(observer: Observer<Intent>): Builder {
-            resultSubject.subscribe(observer)
-            return this
-        }
-
-        fun setReportFloatingImage(@DrawableRes image: Int): Builder {
-            reportFloatingImage = image
-            return this
-        }
-
-        fun build(): BugReporter {
-            return BugReporter
-        }
-    }
-
-    fun askOverlayPermission(activity: Activity, requestCode: Int) {
+    override fun askOverlayPermission(activity: Activity, requestCode: Int) {
         PermissionsUtils.askOverlayPermission(activity = activity, requestCode)
     }
 
@@ -125,7 +65,7 @@ object BugReporter {
         initTrackers(application)
     }
 
-    fun startReport(activity: Activity) {
+    override fun startReport(activity: Activity) {
         Completable.defer {
             hideFloatingButton(activity)
             Completable.timer(500, TimeUnit.MILLISECONDS)
@@ -149,8 +89,7 @@ object BugReporter {
             }.subscribe({
                 activity.startActivity(it)
             }, {
-                //TODO
-                it.printStackTrace()
+                Timber.e(it)
             })
     }
 
@@ -170,39 +109,35 @@ object BugReporter {
 
     private fun getScreenshotFile(context: Context): File {
         //TODO use instant
-        val dateFormat: DateFormat = SimpleDateFormat("dd-MM-yyyy_HH-mm-ss.SS", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy_HH-mm-ss.SS", Locale.getDefault())
         val fileName = "screenshot-" + dateFormat.format(Date()) + ".jpg"
-        val screenshotsDir = File(context.cacheDir, SCREENSHOT_DIR)
+        val screenshotsDir = File(context.cacheDir, InternalConstants.SCREENSHOT_DIR)
         screenshotsDir.mkdirs()
         return File(screenshotsDir, fileName)
     }
 
     private fun getScreenshotFile(context: Context, bitmap: Bitmap): Single<File> {
         return Single.create { emitter ->
-            var outputStream: BufferedOutputStream? = null
             try {
                 val screenshotFile: File = getScreenshotFile(context)
-                outputStream = BufferedOutputStream(FileOutputStream(screenshotFile))
-                bitmap.compress(Bitmap.CompressFormat.JPEG, compressionQuality, outputStream)
-                outputStream.flush()
-                emitter.onSuccess(screenshotFile)
-            }
-            catch (e: IOException) {
-                emitter.onError(e)
-            }
-            finally {
-                try {
-                    outputStream?.close()
-                } catch (exception: IOException) {
-                    //TODO
-                    exception.printStackTrace()
+                BufferedOutputStream(FileOutputStream(screenshotFile)).use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, compressionQuality, outputStream)
+                    outputStream.flush()
                 }
+                emitter.onSuccess(screenshotFile)
+            } catch (e: IOException) {
+                emitter.onError(e)
             }
         }
     }
 
     private fun startReportingTool(applicationContext: Context) {
-        applicationContext.startService(getServiceIntent(applicationContext))
+        val intent = getServiceIntent(applicationContext)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            applicationContext.startForegroundService(intent)
+        } else {
+            applicationContext.startService(intent)
+        }
     }
 
     private fun stopReportingTool(applicationContext: Context) {
@@ -213,14 +148,22 @@ object BugReporter {
         val intent = getServiceIntent(context).apply {
             action = FloatingWidgetService.ACTION_EXIT_REPORT
         }
-        context.startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
     }
 
     private fun hideFloatingButton(context: Context) {
         val intent = getServiceIntent(context).apply {
             action = FloatingWidgetService.ACTION_ENTER_REPORT
         }
-        context.startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
     }
 
     private fun getServiceIntent(context: Context): Intent {
@@ -232,18 +175,22 @@ object BugReporter {
     }
 
     private fun initTrackers(application: Application) {
-        activityTracker = object: Application.ActivityLifecycleCallbacks {
+        activityTracker = object : Application.ActivityLifecycleCallbacks {
 
             override fun onActivityResumed(activity: Activity) {
                 Timber.d("onActivityResumed :: activity=$activity")
-                val oldIsFromReportingTool = currentActivity?.get() is PaintActivity || currentActivity?.get() is BugReportActivity
-                val newIsFromReportingTool = activity is PaintActivity || activity is BugReportActivity
+                val oldIsFromReportingTool =
+                    currentActivity?.get() is PaintActivity
+                            || currentActivity?.get() is BugReportActivity
+                val newIsFromReportingTool =
+                    activity is PaintActivity || activity is BugReportActivity
                 currentActivity = WeakReference(activity)
 
-                if(!oldIsFromReportingTool && newIsFromReportingTool){
+                if (!oldIsFromReportingTool && newIsFromReportingTool) {
+                    Timber.d("Hide floating button")
                     hideFloatingButton(application)
-                }
-                else if(oldIsFromReportingTool && !newIsFromReportingTool) {
+                } else if (oldIsFromReportingTool && !newIsFromReportingTool) {
+                    Timber.d("Show floating button")
                     showFloatingButton(application)
                 }
             }
@@ -252,14 +199,14 @@ object BugReporter {
                 Timber.d("onActivityPaused :: activity=$activity")
             }
 
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }
-            override fun onActivityStarted(activity: Activity) { }
-            override fun onActivityStopped(activity: Activity) { }
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) { }
-            override fun onActivityDestroyed(activity: Activity) { }
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+            override fun onActivityStarted(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {}
         }
 
-        lifecycleListener = object: LifecycleObserver {
+        lifecycleListener = object : LifecycleObserver {
             @OnLifecycleEvent(Lifecycle.Event.ON_START)
             fun onMoveToForeground() {
                 Timber.d("Returning to foreground…")

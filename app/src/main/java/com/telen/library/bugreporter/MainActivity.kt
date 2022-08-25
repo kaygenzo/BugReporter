@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.github.kaygenzo.bugreporter.BugReporter
 import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -19,22 +18,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         reportBug.setOnClickListener {
-            BugReporter.startReport(this)
+            (application as DemoApplication).reporter.startReport(this)
         }
 
         askPermission.setOnClickListener {
-            BugReporter.askOverlayPermission(this, REQUEST_CODE_PERMISSION)
+            (application as DemoApplication).reporter.askOverlayPermission(
+                this,
+                REQUEST_CODE_PERMISSION
+            )
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        when(requestCode) {
+        when (requestCode) {
             REQUEST_CODE_PERMISSION -> {
-                if(PermissionsUtils.hasPermissionOverlay(this)) {
+                if (PermissionsUtils.hasPermissionOverlay(this)) {
                     Toast.makeText(this, "Permission success", Toast.LENGTH_SHORT).show()
-                }
-                else {
+                } else {
                     Toast.makeText(this, "Permission failed", Toast.LENGTH_SHORT).show()
                 }
             }

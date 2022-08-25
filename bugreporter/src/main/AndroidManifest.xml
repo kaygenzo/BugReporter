@@ -4,6 +4,7 @@
     package="com.github.kaygenzo.bugreporter">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application>
         <activity android:name="com.github.kaygenzo.bugreporter.screens.BugReportActivity"/>

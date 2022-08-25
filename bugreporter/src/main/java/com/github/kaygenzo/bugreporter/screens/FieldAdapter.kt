@@ -25,11 +25,18 @@ enum class FieldType {
     NETWORK_STATUS
 }
 
-internal data class FieldItem(val type: FieldType, val label: String, val text: String, var enabled: Boolean = true, val visible: Boolean = true)
+internal data class FieldItem(
+    val type: FieldType,
+    val label: String,
+    val text: String,
+    var enabled: Boolean = true,
+    val visible: Boolean = true
+)
 
-internal class FieldAdapter(private val items: List<FieldItem>): RecyclerView.Adapter<FieldAdapter.FieldViewHolder>() {
+internal class FieldAdapter(private val items: List<FieldItem>) :
+    RecyclerView.Adapter<FieldAdapter.FieldViewHolder>() {
 
-    inner class FieldViewHolder(val fieldView: FieldItemView): RecyclerView.ViewHolder(fieldView)
+    inner class FieldViewHolder(val fieldView: FieldItemView) : RecyclerView.ViewHolder(fieldView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FieldViewHolder {
         return FieldViewHolder(FieldItemView(parent.context))
@@ -46,8 +53,8 @@ internal class FieldAdapter(private val items: List<FieldItem>): RecyclerView.Ad
                 item.enabled = isChecked
             }
         }
-        if(item.visible) {
-            holder.fieldView.fieldSwitch.visibility =  View.VISIBLE
+        if (item.visible) {
+            holder.fieldView.fieldSwitch.visibility = View.VISIBLE
             holder.fieldView.fieldText.setTextColor(Color.BLACK)
         } else {
             holder.fieldView.fieldSwitch.visibility = View.GONE

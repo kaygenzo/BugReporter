@@ -1,6 +1,6 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.internal
 
-internal class BugReporterConstants {
+internal class InternalConstants {
     companion object {
         const val EXTRA_IMAGE_PATH = "com.telen.library.extra.IMAGE_PATH"
         const val EXTRA_IMAGE_WIDTH = "com.telen.library.extra.IMAGE_WIDTH"
@@ -11,5 +11,8 @@ internal class BugReporterConstants {
         const val KEY_DESCRIPTION = "description"
 
         const val FILE_AUTHORITY_SUFFIX = ".bugreporter"
+        const val SCREENSHOT_DIR = "screenshots"
+        const val DEFAULT_JPEG_COMPRESSION_QUALITY = 75
+        const val DEFAULT_PREVIEW_SCALE = 0.3f
     }
 }
