@@ -17,6 +17,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        listen.setOnClickListener {
+            (application as DemoApplication).reporter.listen(this)
+        }
+
         reportBug.setOnClickListener {
             (application as DemoApplication).reporter.startReport(this)
         }

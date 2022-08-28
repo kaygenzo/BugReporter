@@ -13,6 +13,7 @@ import java.lang.ref.WeakReference
 
 interface BugReporter {
 
+    fun listen(activity: Activity)
     fun startReport(activity: Activity)
     fun askOverlayPermission(activity: Activity, requestCode: Int)
 

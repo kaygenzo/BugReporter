@@ -51,6 +51,7 @@ internal object BugReporterImpl : BugReporter {
     var activityTracker: Application.ActivityLifecycleCallbacks? = null
     var lifecycleListener: LifecycleObserver? = null
     var currentActivity: WeakReference<Activity>? = null
+    var application: WeakReference<Application>? = null
 
     private val debugTree = Timber.DebugTree()
 
@@ -62,7 +63,14 @@ internal object BugReporterImpl : BugReporter {
         if (BuildConfig.DEBUG) {
             Timber.plant(debugTree)
         }
+        this.application = WeakReference(application)
         initTrackers(application)
+    }
+
+    override fun listen(activity: Activity) {
+        this.currentActivity = WeakReference(activity)
+        lifecycleListener?.let { ProcessLifecycleOwner.get().lifecycle.addObserver(it) }
+        application?.get()?.registerActivityLifecycleCallbacks(activityTracker)
     }
 
     override fun startReport(activity: Activity) {
@@ -219,8 +227,5 @@ internal object BugReporterImpl : BugReporter {
                 stopReportingTool(application)
             }
         }
-
-        lifecycleListener?.let { ProcessLifecycleOwner.get().lifecycle.addObserver(it) }
-        application.registerActivityLifecycleCallbacks(activityTracker)
     }
 }
