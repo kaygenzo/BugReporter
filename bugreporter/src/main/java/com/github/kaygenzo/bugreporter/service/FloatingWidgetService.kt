@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.view.*
 import android.widget.ImageView
 import com.github.kaygenzo.bugreporter.R
+import com.github.kaygenzo.bugreporter.UnsupportedSensorException
 import com.github.kaygenzo.bugreporter.api.ReportMethod
 import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.shake.OnShakeListener
@@ -106,7 +107,11 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
                 setFloatingWidget()
             }
             if (hasShakeMethod()) {
-                shakeDetector = ShakeDetectorKotlin.create(this, this)
+                try {
+                    shakeDetector = ShakeDetectorKotlin.create(this, this)
+                } catch(e: UnsupportedSensorException) {
+                    Timber.e(e)
+                }
                 shakeDetector?.start()
             }
 
