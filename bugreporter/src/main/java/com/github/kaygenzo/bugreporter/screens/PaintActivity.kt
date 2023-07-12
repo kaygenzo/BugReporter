@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.github.kaygenzo.bugreporter.R
@@ -17,7 +16,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-internal class PaintActivity : AppCompatActivity() {
+internal class PaintActivity : BugReportActivity() {
 
     companion object {
         fun getIntent(context: Context, imagePath: String): Intent {

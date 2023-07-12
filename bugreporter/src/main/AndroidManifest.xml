@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application>
-        <activity android:name="com.github.kaygenzo.bugreporter.screens.BugReportActivity"/>
+        <activity android:name="com.github.kaygenzo.bugreporter.screens.BugReportFormActivity"/>
         <activity android:name="com.github.kaygenzo.bugreporter.screens.PaintActivity"/>
 
         <service android:name="com.github.kaygenzo.bugreporter.service.FloatingWidgetService"

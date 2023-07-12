@@ -9,11 +9,11 @@ import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.internal.InternalConstants
 import com.github.kaygenzo.bugreporter.screens.FieldType
 import io.reactivex.rxjava3.core.Observer
-import java.lang.ref.WeakReference
 
 interface BugReporter {
-
-    fun listen(activity: Activity)
+    fun disable()
+    fun release()
+    fun restart()
     fun startReport(activity: Activity)
     fun askOverlayPermission(activity: Activity, requestCode: Int)
 
@@ -25,7 +25,6 @@ interface BugReporter {
         private var developerEmailAddress: String? = null
         private val reportingMethods: MutableList<ReportMethod> = mutableListOf()
         private var resultObserver: Observer<Intent>? = null
-        private var application: WeakReference<Application?> = WeakReference(null)
 
         @DrawableRes
         private var reportFloatingImage = R.drawable.ic_baseline_bug_report_24
@@ -71,22 +70,16 @@ interface BugReporter {
             return this
         }
 
-        fun setApplication(application: Application): Builder {
-            this.application = WeakReference(application)
-            return this
-        }
-
         @Throws(IllegalArgumentException::class)
-        fun build(): BugReporter {
+        fun build(application: Application): BugReporter {
             return BugReporterImpl.also { reporter ->
-                application.get()?.let {
-                    reporter.init(it)
-                } ?: throw IllegalArgumentException("Application must be set")
+                reporter.init(application)
                 reporter.reportFields.addAll(reportFields)
                 reporter.compressionQuality = compressionQuality
                 reporter.previewScale = previewScale
                 reporter.reportingMethods.addAll(reportingMethods)
                 reporter.developerEmailAddress = developerEmailAddress
+                reporter.reportFloatingImage = reportFloatingImage
                 resultObserver?.let { reporter.resultSubject.subscribe(it) }
             }
         }

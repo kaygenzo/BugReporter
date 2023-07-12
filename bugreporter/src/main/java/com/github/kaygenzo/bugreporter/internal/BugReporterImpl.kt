@@ -5,7 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.Lifecycle
@@ -17,15 +16,18 @@ import com.github.kaygenzo.bugreporter.R
 import com.github.kaygenzo.bugreporter.api.BugReporter
 import com.github.kaygenzo.bugreporter.api.ReportMethod
 import com.github.kaygenzo.bugreporter.screens.BugReportActivity
+import com.github.kaygenzo.bugreporter.screens.BugReportFormActivity
 import com.github.kaygenzo.bugreporter.screens.FieldType
-import com.github.kaygenzo.bugreporter.screens.PaintActivity
 import com.github.kaygenzo.bugreporter.service.FloatingWidgetService
 import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
+import com.github.kaygenzo.bugreporter.utils.service
 import com.tarek360.instacapture.Instacapture
 import com.tarek360.instacapture.listener.SimpleScreenCapturingListener
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
+import io.reactivex.rxjava3.subjects.Subject
 import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
@@ -36,24 +38,30 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-internal object BugReporterImpl : BugReporter {
+internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCallbacks,
+    LifecycleObserver {
 
     val reportFields = mutableListOf<FieldType>()
     var compressionQuality = InternalConstants.DEFAULT_JPEG_COMPRESSION_QUALITY
     var previewScale = InternalConstants.DEFAULT_PREVIEW_SCALE
     var developerEmailAddress: String? = null
     val reportingMethods: MutableList<ReportMethod> = mutableListOf()
-    val resultSubject = PublishSubject.create<Intent>()
 
     @DrawableRes
     var reportFloatingImage = R.drawable.ic_baseline_bug_report_24
 
-    var activityTracker: Application.ActivityLifecycleCallbacks? = null
-    var lifecycleListener: LifecycleObserver? = null
-    var currentActivity: WeakReference<Activity>? = null
-    var application: WeakReference<Application>? = null
+    private var currentActivity: WeakReference<Activity>? = null
+    private var application: WeakReference<Application>? = null
+    private val disposables = CompositeDisposable()
+
+    val resultSubject: Subject<Intent> = PublishSubject.create()
+    private val activityResumedSubject: Subject<Activity> = PublishSubject.create()
+    private val foregroundSubject: Subject<Boolean> = PublishSubject.create()
+
+    private val dateFormat = SimpleDateFormat("dd-MM-yyyy_HH-mm-ss.SS", Locale.getDefault())
 
     private val debugTree = Timber.DebugTree()
+    private var isDisabled = false
 
     override fun askOverlayPermission(activity: Activity, requestCode: Int) {
         PermissionsUtils.askOverlayPermission(activity = activity, requestCode)
@@ -64,41 +72,73 @@ internal object BugReporterImpl : BugReporter {
             Timber.plant(debugTree)
         }
         this.application = WeakReference(application)
-        initTrackers(application)
+        application.registerActivityLifecycleCallbacks(this)
+        start()
     }
 
-    override fun listen(activity: Activity) {
-        this.currentActivity = WeakReference(activity)
-        lifecycleListener?.let { ProcessLifecycleOwner.get().lifecycle.addObserver(it) }
-        application?.get()?.registerActivityLifecycleCallbacks(activityTracker)
+    override fun disable() {
+        isDisabled = true
+        disposables.clear()
+        application?.get()?.let { showFloatingButton(it, false) }
+
+    }
+
+    override fun release() {
+        this.application?.get()?.run {
+            showFloatingButton(this, false)
+            unregisterActivityLifecycleCallbacks(this@BugReporterImpl)
+        }
+        this.application = null
+        stop()
+    }
+
+    private fun start() {
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        application?.get()?.let { registerActivityListener(it) }
+    }
+
+    private fun stop() {
+        ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
+        unregisterActivityListener()
+    }
+
+    override fun restart() {
+        stop()
+        start()
+        isDisabled = false
+        application?.get()?.let { showFloatingButton(it, true) }
     }
 
     override fun startReport(activity: Activity) {
-        Completable.defer {
-            hideFloatingButton(activity)
-            Completable.timer(500, TimeUnit.MILLISECONDS)
+        if (isDisabled) {
+            return
         }
-            .andThen(captureScreen(activity))
-            .flatMap { bitmap ->
-                val width = bitmap.width
-                val height = bitmap.height
-                getScreenshotFile(context = activity, bitmap = bitmap)
-                    .map {
-                        val imagePath = it.absolutePath
-                        BugReportActivity.getIntent(
-                            activity,
-                            imagePath,
-                            width,
-                            height,
-                            previewScale,
-                            reportFields
-                        )
-                    }
-            }.subscribe({
-                activity.startActivity(it)
-            }, {
-                Timber.e(it)
-            })
+        disposables.add(
+            //Add some delay to not take the floating button in screenshot
+            Completable.fromAction { showFloatingButton(activity, false) }
+                .andThen(Completable.timer(500, TimeUnit.MILLISECONDS))
+                .andThen(captureScreen(activity))
+                .flatMap { bitmap ->
+                    val width = bitmap.width
+                    val height = bitmap.height
+                    getScreenshotFile(context = activity, bitmap = bitmap)
+                        .map {
+                            val imagePath = it.absolutePath
+                            BugReportFormActivity.getIntent(
+                                activity,
+                                imagePath,
+                                width,
+                                height,
+                                previewScale,
+                                reportFields
+                            )
+                        }
+                }.subscribe({
+                    activity.startActivity(it)
+                }, {
+                    Timber.e(it)
+                })
+        )
     }
 
     private fun captureScreen(activity: Activity): Single<Bitmap> {
@@ -117,7 +157,6 @@ internal object BugReporterImpl : BugReporter {
 
     private fun getScreenshotFile(context: Context): File {
         //TODO use instant
-        val dateFormat = SimpleDateFormat("dd-MM-yyyy_HH-mm-ss.SS", Locale.getDefault())
         val fileName = "screenshot-" + dateFormat.format(Date()) + ".jpg"
         val screenshotsDir = File(context.cacheDir, InternalConstants.SCREENSHOT_DIR)
         screenshotsDir.mkdirs()
@@ -139,93 +178,83 @@ internal object BugReporterImpl : BugReporter {
         }
     }
 
-    private fun startReportingTool(applicationContext: Context) {
-        val intent = getServiceIntent(applicationContext)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            applicationContext.startForegroundService(intent)
+    internal fun getCurrentActivity(): Activity? {
+        return currentActivity?.get()
+    }
+
+    private fun registerActivityListener(context: Context) {
+        disposables.clear()
+        disposables.add(activityResumedSubject.subscribe({
+            currentActivity = WeakReference(it)
+            showFloatingButton(context, it !is BugReportActivity)
+        }, {
+            Timber.e(it)
+        }))
+        disposables.add(foregroundSubject.subscribe({ movedToForeground ->
+            setReportingTool(context, movedToForeground)
+        }, {
+            Timber.e(it)
+        }))
+    }
+
+    private fun unregisterActivityListener() {
+        disposables.clear()
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+        activityResumedSubject.onNext(activity)
+    }
+
+    override fun onActivityPaused(activity: Activity) {}
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityStarted(activity: Activity) {}
+    override fun onActivityStopped(activity: Activity) {}
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+    override fun onActivityDestroyed(activity: Activity) {}
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onMoveToForeground() {
+        foregroundSubject.onNext(true)
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    fun onMoveToBackground() {
+        foregroundSubject.onNext(false)
+    }
+
+    private fun setReportingTool(context: Context, enabled: Boolean) {
+        if (enabled) {
+            if (isDisabled) {
+                return
+            }
+            Timber.d("startReportingTool")
+            context.service(getServiceIntent(context))
         } else {
-            applicationContext.startService(intent)
+            Timber.d("stopReportingTool")
+            context.stopService(getServiceIntent(context))
         }
     }
 
-    private fun stopReportingTool(applicationContext: Context) {
-        applicationContext.stopService(getServiceIntent(applicationContext))
-    }
-
-    private fun showFloatingButton(context: Context) {
-        val intent = getServiceIntent(context).apply {
-            action = FloatingWidgetService.ACTION_EXIT_REPORT
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
+    private fun showFloatingButton(context: Context, show: Boolean) {
+        if (!show) {
+            Timber.d("Hide floating button")
+            val intent = getServiceIntent(context).apply {
+                action = FloatingWidgetService.ACTION_ENTER_REPORT
+            }
+            context.service(intent)
         } else {
-            context.startService(intent)
-        }
-    }
-
-    private fun hideFloatingButton(context: Context) {
-        val intent = getServiceIntent(context).apply {
-            action = FloatingWidgetService.ACTION_ENTER_REPORT
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
+            if (isDisabled) {
+                return
+            }
+            Timber.d("Show floating button")
+            val intent = getServiceIntent(context).apply {
+                action = FloatingWidgetService.ACTION_EXIT_REPORT
+            }
+            context.service(intent)
         }
     }
 
     private fun getServiceIntent(context: Context): Intent {
         return Intent(context, FloatingWidgetService::class.java)
-    }
-
-    internal fun getCurrentActivity(): Activity? {
-        return currentActivity?.get()
-    }
-
-    private fun initTrackers(application: Application) {
-        activityTracker = object : Application.ActivityLifecycleCallbacks {
-
-            override fun onActivityResumed(activity: Activity) {
-                Timber.d("onActivityResumed :: activity=$activity")
-                val oldIsFromReportingTool =
-                    currentActivity?.get() is PaintActivity
-                            || currentActivity?.get() is BugReportActivity
-                val newIsFromReportingTool =
-                    activity is PaintActivity || activity is BugReportActivity
-                currentActivity = WeakReference(activity)
-
-                if (!oldIsFromReportingTool && newIsFromReportingTool) {
-                    Timber.d("Hide floating button")
-                    hideFloatingButton(application)
-                } else if (oldIsFromReportingTool && !newIsFromReportingTool) {
-                    Timber.d("Show floating button")
-                    showFloatingButton(application)
-                }
-            }
-
-            override fun onActivityPaused(activity: Activity) {
-                Timber.d("onActivityPaused :: activity=$activity")
-            }
-
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-            override fun onActivityStarted(activity: Activity) {}
-            override fun onActivityStopped(activity: Activity) {}
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {}
-        }
-
-        lifecycleListener = object : LifecycleObserver {
-            @OnLifecycleEvent(Lifecycle.Event.ON_START)
-            fun onMoveToForeground() {
-                Timber.d("Returning to foreground…")
-                startReportingTool(application)
-            }
-
-            @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-            fun onMoveToBackground() {
-                Timber.d("Moving to background…")
-                stopReportingTool(application)
-            }
-        }
     }
 }

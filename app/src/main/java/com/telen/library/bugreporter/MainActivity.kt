@@ -17,12 +17,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        listen.setOnClickListener {
-            (application as DemoApplication).reporter.listen(this)
+        disable.setOnClickListener {
+            (application as DemoApplication).reporter.disable()
+        }
+
+        restart.setOnClickListener {
+            (application as DemoApplication).reporter.restart()
         }
 
         reportBug.setOnClickListener {
             (application as DemoApplication).reporter.startReport(this)
+        }
+
+        release.setOnClickListener {
+            (application as DemoApplication).reporter.release()
         }
 
         askPermission.setOnClickListener {

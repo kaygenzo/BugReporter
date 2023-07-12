@@ -16,7 +16,6 @@ class DemoApplication : Application(), Observer<Intent> {
         super.onCreate()
 
         reporter = BugReporter.Builder()
-            .setApplication(this)
             .setCompressionQuality(75)
             .setImagePreviewScale(0.3f)
             .setFields(null)
@@ -24,7 +23,7 @@ class DemoApplication : Application(), Observer<Intent> {
             .setReportMethods(listOf(ReportMethod.SHAKE, ReportMethod.FLOATING_BUTTON))
             .setReportFloatingImage(R.drawable.images)
             .observeResult(this)
-            .build()
+            .build(this)
     }
 
     override fun onSubscribe(d: Disposable) {}
