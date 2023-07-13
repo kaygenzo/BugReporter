@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter.screens
+package com.github.kaygenzo.bugreporter.internal.screens
 
 import android.content.Context
 import android.content.Intent

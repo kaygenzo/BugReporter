@@ -1,3 +1,3 @@
-package com.github.kaygenzo.bugreporter
+package com.github.kaygenzo.bugreporter.api
 
 class UnsupportedSensorException: Exception()

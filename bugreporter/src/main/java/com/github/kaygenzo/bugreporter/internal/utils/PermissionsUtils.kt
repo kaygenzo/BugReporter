@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter.utils
+package com.github.kaygenzo.bugreporter.internal.utils
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -9,7 +9,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 
-object PermissionsUtils {
+internal object PermissionsUtils {
     fun hasPermissionOverlay(context: Context): Boolean {
         return !(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context))
     }

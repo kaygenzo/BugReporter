@@ -1,11 +1,11 @@
-package com.github.kaygenzo.bugreporter.shake
+package com.github.kaygenzo.bugreporter.internal.shake
 
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import com.github.kaygenzo.bugreporter.UnsupportedSensorException
+import com.github.kaygenzo.bugreporter.api.UnsupportedSensorException
 import java.util.*
 
 internal data class SensorBundle(val mXAcc: Float, val mYAcc: Float, val mZAcc: Float, val mTimestamp: Long)

@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter.views
+package com.github.kaygenzo.bugreporter.internal.views
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,20 +10,44 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import com.github.kaygenzo.bugreporter.R
 
-class PaintImageView: AppCompatImageView {
+internal class PaintImageView : AppCompatImageView {
 
-    constructor(context: Context) : super(context) { initView() }
-    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) { initView(attrs) }
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) { initView(attrs, defStyleAttr) }
+    constructor(context: Context) : super(context) {
+        initView()
+    }
+
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+        initView(attrs)
+    }
+
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    ) {
+        initView(attrs, defStyleAttr)
+    }
 
     private fun initView(attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = 0) {
         attrs?.let {
-            val typedArray = context.theme.obtainStyledAttributes(it, R.styleable.PaintImageView, defStyleAttr, defStyleRes)
+            val typedArray = context.theme.obtainStyledAttributes(
+                it,
+                R.styleable.PaintImageView,
+                defStyleAttr,
+                defStyleRes
+            )
             try {
-                strokeColor = typedArray.getColor(R.styleable.PaintImageView_strokeColor, defaultStrokeColor)
-                strokeWidth = typedArray.getDimension(R.styleable.PaintImageView_strokeWidth, defaultStrokeWidth)
+                strokeColor =
+                    typedArray.getColor(R.styleable.PaintImageView_strokeColor, defaultStrokeColor)
+                strokeWidth = typedArray.getDimension(
+                    R.styleable.PaintImageView_strokeWidth,
+                    defaultStrokeWidth
+                )
                 inEditMode = typedArray.getBoolean(R.styleable.PaintImageView_inEditMode, false)
-                touchTolerance = typedArray.getFloat(R.styleable.PaintImageView_touchTolerance, defaultTouchTolerance)
+                touchTolerance = typedArray.getFloat(
+                    R.styleable.PaintImageView_touchTolerance,
+                    defaultTouchTolerance
+                )
             } finally {
                 typedArray.recycle()
             }
@@ -105,7 +129,8 @@ class PaintImageView: AppCompatImageView {
             val scale = FloatArray(9).apply { inverse.getValues(this) }[Matrix.MSCALE_X]
 
             // draw original bitmap
-            val result = Bitmap.createBitmap(it.intrinsicWidth, it.intrinsicHeight, Bitmap.Config.ARGB_8888)
+            val result =
+                Bitmap.createBitmap(it.intrinsicWidth, it.intrinsicHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(result)
             it.draw(canvas)
 
@@ -131,10 +156,12 @@ class PaintImageView: AppCompatImageView {
                     handleTouchStart(event)
                     invalidate()
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     handleTouchMove(event)
                     invalidate()
                 }
+
                 MotionEvent.ACTION_UP -> {
                     handleTouchEnd()
                     countDrawn++
@@ -156,7 +183,8 @@ class PaintImageView: AppCompatImageView {
             xTranslation,
             yTranslation,
             xTranslation + sourceBitmap.intrinsicWidth * scale,
-            yTranslation + sourceBitmap.intrinsicHeight * scale)
+            yTranslation + sourceBitmap.intrinsicHeight * scale
+        )
 
         // make sure drawings are kept within the image bounds
         if (imageBounds.contains(event.x, event.y)) {
@@ -173,14 +201,21 @@ class PaintImageView: AppCompatImageView {
         val yTranslation = matrixValues[Matrix.MTRANS_Y]
         val scale = matrixValues[Matrix.MSCALE_X]
 
-        val xPos = event.x.coerceIn(xTranslation, xTranslation + sourceBitmap.intrinsicWidth * scale)
-        val yPos = event.y.coerceIn(yTranslation, yTranslation + sourceBitmap.intrinsicHeight * scale)
+        val xPos =
+            event.x.coerceIn(xTranslation, xTranslation + sourceBitmap.intrinsicWidth * scale)
+        val yPos =
+            event.y.coerceIn(yTranslation, yTranslation + sourceBitmap.intrinsicHeight * scale)
 
         val dx = Math.abs(xPos - currentX)
         val dy = Math.abs(yPos - currentY)
 
         if (dx >= touchTolerance || dy >= touchTolerance) {
-            getCurrentPath()?.quadTo(currentX, currentY, (xPos + currentX) / 2, (yPos + currentY) / 2)
+            getCurrentPath()?.quadTo(
+                currentX,
+                currentY,
+                (xPos + currentX) / 2,
+                (yPos + currentY) / 2
+            )
             currentX = xPos
             currentY = yPos
         }

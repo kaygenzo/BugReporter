@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kaygenzo.bugreporter.api.ReportMethod
-import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -63,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_CODE_PERMISSION -> {
-                if (PermissionsUtils.hasPermissionOverlay(this)) {
+                if ((application as DemoApplication).reporter.hasPermissionOverlay(this)) {
                     Toast.makeText(this, "Permission success", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this, "Permission failed", Toast.LENGTH_SHORT).show()

@@ -1,29 +1,12 @@
-package com.github.kaygenzo.bugreporter.screens
+package com.github.kaygenzo.bugreporter.internal.screens
 
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.github.kaygenzo.bugreporter.views.FieldItemView
+import com.github.kaygenzo.bugreporter.api.FieldType
+import com.github.kaygenzo.bugreporter.internal.views.FieldItemView
 import kotlinx.android.synthetic.main.view_item_field.view.*
-
-enum class FieldType {
-    DATE_TIME,
-    DATE_TIME_MILLIS,
-    MANUFACTURER,
-    BRAND,
-    MODEL,
-    APP_VERSION,
-    ANDROID_VERSION,
-    LOCALE,
-    SCREEN_DENSITY,
-    SCREEN_RESOLUTION,
-    ORIENTATION,
-    BATTERY_STATUS,
-    BT_STATUS,
-    WIFI_STATUS,
-    NETWORK_STATUS
-}
 
 internal data class FieldItem(
     val type: FieldType,

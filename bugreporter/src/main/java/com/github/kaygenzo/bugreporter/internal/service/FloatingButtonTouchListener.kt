@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter.service
+package com.github.kaygenzo.bugreporter.internal.service
 
 import android.annotation.SuppressLint
 import android.graphics.Point

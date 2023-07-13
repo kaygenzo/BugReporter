@@ -2,12 +2,12 @@ package com.github.kaygenzo.bugreporter.api
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import androidx.annotation.DrawableRes
 import com.github.kaygenzo.bugreporter.R
 import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.internal.InternalConstants
-import com.github.kaygenzo.bugreporter.screens.FieldType
 import io.reactivex.rxjava3.core.Observer
 
 interface BugReporter {
@@ -18,6 +18,7 @@ interface BugReporter {
     fun startReport(activity: Activity)
     fun askOverlayPermission(activity: Activity, requestCode: Int)
     fun setReportMethods(methods: List<ReportMethod>)
+    fun hasPermissionOverlay(context: Context): Boolean
 
     class Builder {
         private val reportFields = mutableListOf<FieldType>()

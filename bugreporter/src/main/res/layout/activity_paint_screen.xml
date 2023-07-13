@@ -93,7 +93,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.github.kaygenzo.bugreporter.views.PaintImageView
+    <com.github.kaygenzo.bugreporter.internal.views.PaintImageView
         android:id="@+id/paintCanvas"
         android:layout_width="0dp"
         android:layout_height="0dp"

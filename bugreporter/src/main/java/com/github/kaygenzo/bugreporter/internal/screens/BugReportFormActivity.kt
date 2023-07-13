@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter.screens
+package com.github.kaygenzo.bugreporter.internal.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kaygenzo.bugreporter.R
+import com.github.kaygenzo.bugreporter.api.FieldType
 import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.internal.InternalConstants
 import com.squareup.picasso.Picasso

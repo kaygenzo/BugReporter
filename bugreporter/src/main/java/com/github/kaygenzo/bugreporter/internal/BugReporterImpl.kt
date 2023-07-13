@@ -14,13 +14,13 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.github.kaygenzo.bugreporter.BuildConfig
 import com.github.kaygenzo.bugreporter.R
 import com.github.kaygenzo.bugreporter.api.BugReporter
+import com.github.kaygenzo.bugreporter.api.FieldType
 import com.github.kaygenzo.bugreporter.api.ReportMethod
-import com.github.kaygenzo.bugreporter.screens.BugReportActivity
-import com.github.kaygenzo.bugreporter.screens.BugReportFormActivity
-import com.github.kaygenzo.bugreporter.screens.FieldType
-import com.github.kaygenzo.bugreporter.service.FloatingWidgetService
-import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
-import com.github.kaygenzo.bugreporter.utils.service
+import com.github.kaygenzo.bugreporter.internal.screens.BugReportActivity
+import com.github.kaygenzo.bugreporter.internal.screens.BugReportFormActivity
+import com.github.kaygenzo.bugreporter.internal.service.FloatingWidgetService
+import com.github.kaygenzo.bugreporter.internal.utils.PermissionsUtils
+import com.github.kaygenzo.bugreporter.internal.utils.service
 import com.tarek360.instacapture.Instacapture
 import com.tarek360.instacapture.listener.SimpleScreenCapturingListener
 import io.reactivex.rxjava3.core.Completable
@@ -70,6 +70,10 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     override fun setReportMethods(methods: List<ReportMethod>) {
         reportingMethods.clear()
         reportingMethods.addAll(methods)
+    }
+
+    override fun hasPermissionOverlay(context: Context): Boolean {
+        return PermissionsUtils.hasPermissionOverlay(context)
     }
 
     fun init(application: Application) {

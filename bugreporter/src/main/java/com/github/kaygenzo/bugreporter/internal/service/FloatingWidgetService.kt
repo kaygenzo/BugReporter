@@ -1,4 +1,4 @@
-package com.github.kaygenzo.bugreporter.service
+package com.github.kaygenzo.bugreporter.internal.service
 
 import android.annotation.SuppressLint
 import android.app.Service
@@ -7,13 +7,13 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
 import android.view.*
-import com.github.kaygenzo.bugreporter.UnsupportedSensorException
 import com.github.kaygenzo.bugreporter.api.ReportMethod
+import com.github.kaygenzo.bugreporter.api.UnsupportedSensorException
 import com.github.kaygenzo.bugreporter.databinding.FloatingWidgetBinding
 import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
-import com.github.kaygenzo.bugreporter.shake.OnShakeListener
-import com.github.kaygenzo.bugreporter.shake.ShakeDetectorKotlin
-import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
+import com.github.kaygenzo.bugreporter.internal.shake.OnShakeListener
+import com.github.kaygenzo.bugreporter.internal.shake.ShakeDetectorKotlin
+import com.github.kaygenzo.bugreporter.internal.utils.PermissionsUtils
 import kotlinx.android.synthetic.main.floating_widget.view.*
 import timber.log.Timber
 
