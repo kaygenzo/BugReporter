@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -37,6 +38,7 @@ import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 
 internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCallbacks,
     LifecycleObserver {
@@ -46,6 +48,7 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     var previewScale = InternalConstants.DEFAULT_PREVIEW_SCALE
     var developerEmailAddress: String? = null
     val reportingMethods: MutableList<ReportMethod> = mutableListOf()
+    var isDebug = false
 
     @DrawableRes
     var reportFloatingImage = R.drawable.ic_baseline_bug_report_24
@@ -61,6 +64,13 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy_HH-mm-ss.SS", Locale.getDefault())
 
     private val debugTree = Timber.DebugTree()
+    private val releaseTree = object: Timber.DebugTree() {
+        override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+            when(priority) {
+                Log.INFO, Log.WARN, Log.ERROR -> super.log(priority, tag, message, t)
+            }
+        }
+    }
     private var isDisabled = false
 
     override fun askOverlayPermission(activity: Activity, requestCode: Int) {
@@ -79,6 +89,8 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     fun init(application: Application) {
         if (BuildConfig.DEBUG) {
             Timber.plant(debugTree)
+        } else {
+            Timber.plant(releaseTree)
         }
         this.application = WeakReference(application)
         application.registerActivityLifecycleCallbacks(this)
@@ -102,11 +114,17 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     }
 
     private fun start() {
+        if (isDebug) {
+            Timber.i("start")
+        }
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         application?.get()?.let { registerActivityListener(it) }
     }
 
     private fun stop() {
+        if (isDebug) {
+            Timber.i("stop")
+        }
         ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
         unregisterActivityListener()
     }
@@ -204,6 +222,9 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
             Timber.e(it)
         }))
         disposables.add(foregroundSubject.subscribe({ movedToForeground ->
+            if (isDebug) {
+                Timber.i("movedToForeground: $movedToForeground")
+            }
             setReportingTool(context, movedToForeground)
         }, {
             Timber.e(it)
@@ -236,6 +257,9 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     }
 
     private fun setReportingTool(context: Context, enabled: Boolean) {
+        if (isDebug) {
+            Timber.i("setReportingTool :: $enabled, isDisabled: $isDisabled")
+        }
         if (enabled) {
             if (isDisabled) {
                 return
@@ -249,6 +273,9 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
     }
 
     private fun showFloatingButton(context: Context, show: Boolean) {
+        if (isDebug) {
+            Timber.i("showFloatingButton :: $show, isDisabled: $isDisabled")
+        }
         if (!show) {
             Timber.d("Hide floating button")
             val intent = getServiceIntent(context).apply {

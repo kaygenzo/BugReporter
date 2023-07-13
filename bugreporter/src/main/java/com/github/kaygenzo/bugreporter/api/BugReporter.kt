@@ -24,6 +24,7 @@ interface BugReporter {
         private val reportFields = mutableListOf<FieldType>()
         private var compressionQuality = InternalConstants.DEFAULT_JPEG_COMPRESSION_QUALITY
         private var previewScale = InternalConstants.DEFAULT_PREVIEW_SCALE
+        private var isDebug = false
 
         private var developerEmailAddress: String? = null
         private val reportingMethods: MutableList<ReportMethod> = mutableListOf()
@@ -73,6 +74,11 @@ interface BugReporter {
             return this
         }
 
+        fun setDebug(enabled: Boolean): Builder {
+            this.isDebug = enabled
+            return this
+        }
+
         @Throws(IllegalArgumentException::class)
         fun build(application: Application): BugReporter {
             return BugReporterImpl.also { reporter ->
@@ -83,6 +89,7 @@ interface BugReporter {
                 reporter.setReportMethods(reportingMethods)
                 reporter.developerEmailAddress = developerEmailAddress
                 reporter.reportFloatingImage = reportFloatingImage
+                reporter.isDebug = isDebug
                 resultObserver?.let { reporter.resultSubject.subscribe(it) }
             }
         }

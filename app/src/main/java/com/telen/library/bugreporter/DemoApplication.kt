@@ -22,6 +22,7 @@ class DemoApplication : Application(), Observer<Intent> {
             .setEmail("developer@telen.fr")
             .setReportFloatingImage(R.drawable.images)
             .observeResult(this)
+            .setDebug(false)
             .build(this)
     }
 
