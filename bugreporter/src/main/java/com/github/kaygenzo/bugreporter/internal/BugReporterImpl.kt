@@ -67,6 +67,11 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
         PermissionsUtils.askOverlayPermission(activity = activity, requestCode)
     }
 
+    override fun setReportMethods(methods: List<ReportMethod>) {
+        reportingMethods.clear()
+        reportingMethods.addAll(methods)
+    }
+
     fun init(application: Application) {
         if (BuildConfig.DEBUG) {
             Timber.plant(debugTree)
@@ -106,6 +111,10 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
         stop()
         start()
         isDisabled = false
+        refresh()
+    }
+
+    override fun refresh() {
         application?.get()?.let { showFloatingButton(it, true) }
     }
 
@@ -239,7 +248,7 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
         if (!show) {
             Timber.d("Hide floating button")
             val intent = getServiceIntent(context).apply {
-                action = FloatingWidgetService.ACTION_ENTER_REPORT
+                action = FloatingWidgetService.ACTION_STOP
             }
             context.service(intent)
         } else {
@@ -248,7 +257,7 @@ internal object BugReporterImpl : BugReporter, Application.ActivityLifecycleCall
             }
             Timber.d("Show floating button")
             val intent = getServiceIntent(context).apply {
-                action = FloatingWidgetService.ACTION_EXIT_REPORT
+                action = FloatingWidgetService.ACTION_START
             }
             context.service(intent)
         }

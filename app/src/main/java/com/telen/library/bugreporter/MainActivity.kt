@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.github.kaygenzo.bugreporter.api.ReportMethod
 import com.github.kaygenzo.bugreporter.utils.PermissionsUtils
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -21,8 +22,25 @@ class MainActivity : AppCompatActivity() {
             (application as DemoApplication).reporter.disable()
         }
 
-        restart.setOnClickListener {
-            (application as DemoApplication).reporter.restart()
+        restartManual.setOnClickListener {
+            (application as DemoApplication).apply {
+                reporter.setReportMethods(listOf())
+                reporter.restart()
+            }
+        }
+
+        restartShake.setOnClickListener {
+            (application as DemoApplication).apply {
+                reporter.setReportMethods(listOf(ReportMethod.SHAKE))
+                reporter.restart()
+            }
+        }
+
+        restartFloatingButton.setOnClickListener {
+            (application as DemoApplication).apply {
+                reporter.setReportMethods(listOf(ReportMethod.FLOATING_BUTTON))
+                reporter.restart()
+            }
         }
 
         reportBug.setOnClickListener {

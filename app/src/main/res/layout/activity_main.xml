@@ -16,18 +16,32 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <Button
-        android:id="@+id/restart"
+        android:id="@+id/restartManual"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Restart"
+        android:text="Restart manual"
         app:layout_constraintTop_toBottomOf="@+id/disable"/>
+
+    <Button
+        android:id="@+id/restartShake"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Restart shake"
+        app:layout_constraintTop_toBottomOf="@+id/restartManual"/>
+
+    <Button
+        android:id="@+id/restartFloatingButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Restart floating button"
+        app:layout_constraintTop_toBottomOf="@+id/restartShake"/>
 
     <Button
         android:id="@+id/reportBug"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Start reporting by email"
-        app:layout_constraintTop_toBottomOf="@+id/restart"/>
+        app:layout_constraintTop_toBottomOf="@+id/restartFloatingButton"/>
 
     <Button
         android:id="@+id/release"

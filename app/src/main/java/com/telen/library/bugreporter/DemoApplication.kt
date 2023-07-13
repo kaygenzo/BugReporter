@@ -20,7 +20,6 @@ class DemoApplication : Application(), Observer<Intent> {
             .setImagePreviewScale(0.3f)
             .setFields(null)
             .setEmail("developer@telen.fr")
-            .setReportMethods(listOf(ReportMethod.SHAKE, ReportMethod.FLOATING_BUTTON))
             .setReportFloatingImage(R.drawable.images)
             .observeResult(this)
             .build(this)

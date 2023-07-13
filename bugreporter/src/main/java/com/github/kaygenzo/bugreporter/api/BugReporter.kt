@@ -14,8 +14,10 @@ interface BugReporter {
     fun disable()
     fun release()
     fun restart()
+    fun refresh()
     fun startReport(activity: Activity)
     fun askOverlayPermission(activity: Activity, requestCode: Int)
+    fun setReportMethods(methods: List<ReportMethod>)
 
     class Builder {
         private val reportFields = mutableListOf<FieldType>()
@@ -77,7 +79,7 @@ interface BugReporter {
                 reporter.reportFields.addAll(reportFields)
                 reporter.compressionQuality = compressionQuality
                 reporter.previewScale = previewScale
-                reporter.reportingMethods.addAll(reportingMethods)
+                reporter.setReportMethods(reportingMethods)
                 reporter.developerEmailAddress = developerEmailAddress
                 reporter.reportFloatingImage = reportFloatingImage
                 resultObserver?.let { reporter.resultSubject.subscribe(it) }

@@ -20,8 +20,8 @@ import timber.log.Timber
 internal class FloatingWidgetService : Service(), OnShakeListener {
 
     companion object {
-        const val ACTION_ENTER_REPORT = "com.telen.library.action.ENTER_REPORT"
-        const val ACTION_EXIT_REPORT = "com.telen.library.action.EXIT_REPORT"
+        const val ACTION_STOP = "com.telen.library.action.ACTION_STOP"
+        const val ACTION_START = "com.telen.library.action.ACTION_START"
     }
 
     private val mLock = Any()
@@ -68,6 +68,8 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
         super.onCreate()
         binding = FloatingWidgetBinding.inflate(LayoutInflater.from(this), null, false)
         binding.fabHead.setImageResource(BugReporterImpl.reportFloatingImage)
+        setFloatingWidget()
+        shakeDetector?.start()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -78,29 +80,21 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
 
         intent?.action.run {
             when (this) {
-                ACTION_ENTER_REPORT -> {
+                ACTION_STOP -> {
                     hideFloatingButton()
                     synchronized(mLock) {
                         shakeDisabled = true
                     }
                 }
 
-                ACTION_EXIT_REPORT -> {
-                    showFloatingButton()
-                    synchronized(mLock) {
-                        shakeDisabled = false
-                    }
-                }
-
-                else -> {
-                    Timber.d("Not managed action $this ...")
-                    if (hasFloatingButtonMethod()) {
-                        setFloatingWidget()
-                    }
-                    if (hasShakeMethod()) {
-                        shakeDetector?.start()
+                ACTION_START -> {
+                    if(hasFloatingButtonMethod()) {
+                        showFloatingButton()
                     } else {
-                        shakeDetector?.stop()
+                        hideFloatingButton()
+                    }
+                    synchronized(mLock) {
+                        shakeDisabled = !hasShakeMethod()
                     }
                 }
             }
@@ -110,37 +104,41 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (hasFloatingButtonMethod()) {
-            removeFloatingWidget()
-        }
-        if (hasShakeMethod()) {
-            shakeDetector?.stop()
-        }
+        removeFloatingWidget()
+        shakeDetector?.stop()
     }
 
     private fun hasShakeMethod(): Boolean {
-        return BugReporterImpl.reportingMethods.contains(ReportMethod.SHAKE)
+        val enabled = BugReporterImpl.reportingMethods.contains(ReportMethod.SHAKE)
+        Timber.d("hasShakeMethod: $enabled")
+        return enabled
     }
 
     private fun hasFloatingButtonMethod(): Boolean {
-        return BugReporterImpl.reportingMethods.contains(ReportMethod.FLOATING_BUTTON)
+        val enabled = BugReporterImpl.reportingMethods.contains(ReportMethod.FLOATING_BUTTON)
+        Timber.d("hasFloatingButtonMethod: $enabled")
+        return enabled
     }
 
     override fun onShake() {
-        synchronized(mLock) {
-            if (!shakeDisabled) {
-                shakeDisabled = true
-                Timber.d("OnShake!")
-                launchReport()
+        if(hasShakeMethod()) {
+            synchronized(mLock) {
+                if (!shakeDisabled) {
+                    shakeDisabled = true
+                    Timber.d("OnShake!")
+                    launchReport()
+                }
             }
         }
     }
 
     private fun hideFloatingButton() {
+        Timber.d("hideFloatingButton")
         binding.floatingWidgetRoot.visibility = View.GONE
     }
 
     private fun showFloatingButton() {
+        Timber.d("showFloatingButton")
         if (hasFloatingButtonMethod()) {
             binding.floatingWidgetRoot.visibility = View.VISIBLE
         }
@@ -148,11 +146,15 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setFloatingWidget() {
-        if (PermissionsUtils.hasPermissionOverlay(this)) {
+        val granted = PermissionsUtils.hasPermissionOverlay(this)
+        if (granted) {
             (getSystemService(WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
+                binding.floatingWidgetRoot.visibility = View.INVISIBLE
                 windowManager.addView(binding.root, params)
                 val listener = FloatingButtonTouchListener(windowManager, binding, params) {
-                    launchReport()
+                    if(hasFloatingButtonMethod()) {
+                        launchReport()
+                    }
                 }
                 binding.floatingWidgetRoot.setOnTouchListener(listener)
             }
@@ -161,7 +163,11 @@ internal class FloatingWidgetService : Service(), OnShakeListener {
 
     private fun removeFloatingWidget() {
         if (PermissionsUtils.hasPermissionOverlay(this)) {
-            (getSystemService(WINDOW_SERVICE) as? WindowManager)?.removeView(binding.root)
+            try {
+                (getSystemService(WINDOW_SERVICE) as? WindowManager)?.removeView(binding.root)
+            } catch (e: IllegalArgumentException) {
+                Timber.d(e.toString())
+            }
         }
     }
 
