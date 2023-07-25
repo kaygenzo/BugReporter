@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kaygenzo.bugreporter.api.FieldType
 import com.github.kaygenzo.bugreporter.internal.views.FieldItemView
-import kotlinx.android.synthetic.main.view_item_field.view.*
 
 internal data class FieldItem(
     val type: FieldType,
@@ -27,21 +26,23 @@ internal class FieldAdapter(private val items: List<FieldItem>) :
 
     override fun onBindViewHolder(holder: FieldViewHolder, position: Int) {
         val item = items[position]
-        holder.fieldView.fieldText.text = item.text
-        holder.fieldView.fieldLabel.text = item.label
-        holder.fieldView.fieldSwitch.apply {
-            setOnCheckedChangeListener(null)
-            isChecked = item.enabled
-            setOnCheckedChangeListener { _, isChecked ->
-                item.enabled = isChecked
+        with(holder.fieldView.binding) {
+            fieldText.text = item.text
+            fieldLabel.text = item.label
+            fieldSwitch.apply {
+                setOnCheckedChangeListener(null)
+                isChecked = item.enabled
+                setOnCheckedChangeListener { _, isChecked ->
+                    item.enabled = isChecked
+                }
             }
-        }
-        if (item.visible) {
-            holder.fieldView.fieldSwitch.visibility = View.VISIBLE
-            holder.fieldView.fieldText.setTextColor(Color.BLACK)
-        } else {
-            holder.fieldView.fieldSwitch.visibility = View.GONE
-            holder.fieldView.fieldText.setTextColor(Color.RED)
+            if (item.visible) {
+                fieldSwitch.visibility = View.VISIBLE
+                fieldText.setTextColor(Color.BLACK)
+            } else {
+                fieldSwitch.visibility = View.GONE
+                fieldText.setTextColor(Color.RED)
+            }
         }
     }
 

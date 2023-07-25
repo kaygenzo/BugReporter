@@ -7,8 +7,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application>
-        <activity android:name="com.github.kaygenzo.bugreporter.internal.screens.BugReportFormActivity"/>
-        <activity android:name="com.github.kaygenzo.bugreporter.internal.screens.PaintActivity"/>
+        <activity
+            android:name="com.github.kaygenzo.bugreporter.internal.screens.BugReportFormActivity"
+            android:exported="false"/>
+        <activity
+            android:name="com.github.kaygenzo.bugreporter.internal.screens.PaintActivity"
+            android:exported="false"/>
 
         <service android:name="com.github.kaygenzo.bugreporter.internal.service.FloatingWidgetService"
             android:enabled="true"

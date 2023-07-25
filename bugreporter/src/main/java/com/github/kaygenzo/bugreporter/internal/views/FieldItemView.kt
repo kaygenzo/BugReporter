@@ -5,11 +5,13 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.github.kaygenzo.bugreporter.R
-import kotlinx.android.synthetic.main.view_item_field.view.*
+import com.github.kaygenzo.bugreporter.databinding.ViewItemFieldBinding
 
 internal class FieldItemView : ConstraintLayout {
 
     private var label = ""
+    val binding: ViewItemFieldBinding =
+        ViewItemFieldBinding.inflate(LayoutInflater.from(context), this, true)
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
@@ -38,23 +40,22 @@ internal class FieldItemView : ConstraintLayout {
     }
 
     init {
-        LayoutInflater.from(context).inflate(R.layout.view_item_field, this)
         layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
     }
 
     override fun isEnabled(): Boolean {
-        return fieldSwitch.isChecked
+        return binding.fieldSwitch.isChecked
     }
 
     fun setText(text: String) {
-        fieldText.text = text
+        binding.fieldText.text = text
     }
 
     fun getLabel(): String {
-        return fieldLabel.text.toString()
+        return binding.fieldLabel.text.toString()
     }
 
     fun setLabel(label: String) {
-        fieldLabel.text = label
+        binding.fieldLabel.text = label
     }
 }

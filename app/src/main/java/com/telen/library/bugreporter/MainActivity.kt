@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kaygenzo.bugreporter.api.ReportMethod
-import kotlinx.android.synthetic.main.activity_main.*
+import com.telen.library.bugreporter.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
@@ -13,48 +13,52 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_CODE_PERMISSION = 1
     }
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater).apply {
+            setContentView(root)
 
-        disable.setOnClickListener {
-            (application as DemoApplication).reporter.disable()
-        }
-
-        restartManual.setOnClickListener {
-            (application as DemoApplication).apply {
-                reporter.setReportMethods(listOf())
-                reporter.restart()
+            disable.setOnClickListener {
+                (application as DemoApplication).reporter.disable()
             }
-        }
 
-        restartShake.setOnClickListener {
-            (application as DemoApplication).apply {
-                reporter.setReportMethods(listOf(ReportMethod.SHAKE))
-                reporter.restart()
+            restartManual.setOnClickListener {
+                (application as DemoApplication).apply {
+                    reporter.setReportMethods(listOf())
+                    reporter.restart()
+                }
             }
-        }
 
-        restartFloatingButton.setOnClickListener {
-            (application as DemoApplication).apply {
-                reporter.setReportMethods(listOf(ReportMethod.FLOATING_BUTTON))
-                reporter.restart()
+            restartShake.setOnClickListener {
+                (application as DemoApplication).apply {
+                    reporter.setReportMethods(listOf(ReportMethod.SHAKE))
+                    reporter.restart()
+                }
             }
-        }
 
-        reportBug.setOnClickListener {
-            (application as DemoApplication).reporter.startReport(this)
-        }
+            restartFloatingButton.setOnClickListener {
+                (application as DemoApplication).apply {
+                    reporter.setReportMethods(listOf(ReportMethod.FLOATING_BUTTON))
+                    reporter.restart()
+                }
+            }
 
-        release.setOnClickListener {
-            (application as DemoApplication).reporter.release()
-        }
+            reportBug.setOnClickListener {
+                (application as DemoApplication).reporter.startReport(this@MainActivity)
+            }
 
-        askPermission.setOnClickListener {
-            (application as DemoApplication).reporter.askOverlayPermission(
-                this,
-                REQUEST_CODE_PERMISSION
-            )
+            release.setOnClickListener {
+                (application as DemoApplication).reporter.release()
+            }
+
+            askPermission.setOnClickListener {
+                (application as DemoApplication).reporter.askOverlayPermission(
+                    this@MainActivity,
+                    REQUEST_CODE_PERMISSION
+                )
+            }
         }
     }
 

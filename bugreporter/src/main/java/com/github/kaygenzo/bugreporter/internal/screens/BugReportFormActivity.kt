@@ -24,10 +24,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.kaygenzo.bugreporter.R
 import com.github.kaygenzo.bugreporter.api.FieldType
+import com.github.kaygenzo.bugreporter.databinding.ActivityBugReportBinding
 import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.internal.InternalConstants
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_bug_report.*
 import org.json.JSONObject
 import java.io.File
 import java.time.Instant
@@ -58,10 +58,13 @@ internal class BugReportFormActivity : BugReportActivity() {
     private lateinit var fieldItemsAdapter: FieldAdapter
     private val fieldItems = mutableListOf<FieldItem>()
     private var imagePath = ""
+    private lateinit var binding: ActivityBugReportBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bug_report)
+        binding = ActivityBugReportBinding.inflate(layoutInflater).apply {
+            setContentView(root)
+        }
         fieldItemsAdapter = FieldAdapter(fieldItems)
     }
 
@@ -96,26 +99,31 @@ internal class BugReportFormActivity : BugReportActivity() {
                         getString(R.string.label_field_date_and_time),
                         date
                     )
+
                     FieldType.DATE_TIME_MILLIS -> FieldItem(
                         it,
                         getString(R.string.label_field_date_and_time_millis),
                         now.toString()
                     )
+
                     FieldType.MANUFACTURER -> FieldItem(
                         it,
                         getString(R.string.label_field_manufacturer),
                         Build.MANUFACTURER
                     )
+
                     FieldType.BRAND -> FieldItem(
                         it,
                         getString(R.string.label_field_brand),
                         Build.BRAND
                     )
+
                     FieldType.MODEL -> FieldItem(
                         it,
                         getString(R.string.label_field_model),
                         Build.MODEL
                     )
+
                     FieldType.APP_VERSION -> {
                         val packageInfo = packageManager.getPackageInfo(packageName, 0)
                         val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -130,18 +138,21 @@ internal class BugReportFormActivity : BugReportActivity() {
                             "$versionName ($versionCode)"
                         )
                     }
+
                     FieldType.ANDROID_VERSION -> FieldItem(
                         it,
                         getString(R.string.label_field_android_version),
                         Build.VERSION.SDK_INT.toString(),
                         true
                     )
+
                     FieldType.LOCALE -> FieldItem(
                         it,
                         getString(R.string.label_field_locale),
                         Locale.getDefault().toString(),
                         true
                     )
+
                     FieldType.BT_STATUS -> {
                         if (ContextCompat.checkSelfPermission(
                                 this,
@@ -158,6 +169,7 @@ internal class BugReportFormActivity : BugReportActivity() {
                             )
                         }
                     }
+
                     FieldType.WIFI_STATUS -> {
                         if (ContextCompat.checkSelfPermission(
                                 this,
@@ -177,6 +189,7 @@ internal class BugReportFormActivity : BugReportActivity() {
                             )
                         }
                     }
+
                     FieldType.NETWORK_STATUS -> {
                         if (ContextCompat.checkSelfPermission(
                                 this,
@@ -198,6 +211,7 @@ internal class BugReportFormActivity : BugReportActivity() {
                             )
                         }
                     }
+
                     FieldType.SCREEN_DENSITY -> {
 
                         val density = resources.displayMetrics.density
@@ -217,6 +231,7 @@ internal class BugReportFormActivity : BugReportActivity() {
 
                         FieldItem(it, getString(R.string.label_field_screen_density), densityText)
                     }
+
                     FieldType.SCREEN_RESOLUTION -> {
                         val text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             val rect = windowManager.currentWindowMetrics.bounds
@@ -229,6 +244,7 @@ internal class BugReportFormActivity : BugReportActivity() {
 
                         FieldItem(it, getString(R.string.label_field_screen_resolution), text)
                     }
+
                     FieldType.ORIENTATION -> {
                         val orientation = resources.configuration.orientation
                         val text = if (orientation == Configuration.ORIENTATION_PORTRAIT)
@@ -237,6 +253,7 @@ internal class BugReportFormActivity : BugReportActivity() {
                             getString(R.string.bug_reporting_landscape)
                         FieldItem(it, getString(R.string.label_field_orientation), text)
                     }
+
                     FieldType.BATTERY_STATUS -> {
                         val batteryStatus: Intent? =
                             IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
@@ -270,19 +287,26 @@ internal class BugReportFormActivity : BugReportActivity() {
 
         Picasso.get().invalidate(File(imagePath))
 
-        Picasso.get()
-            .load(File(imagePath))
-            .resize(imageWidth, imageHeight)
-            .into(bugReporterScreenshotPreview)
+        with(binding) {
+            Picasso.get()
+                .load(File(imagePath))
+                .resize(imageWidth, imageHeight)
+                .into(bugReporterScreenshotPreview)
 
-        bugReporterScreenshotPreview.setOnClickListener {
-            startActivity(PaintActivity.getIntent(this, imagePath))
-        }
+            bugReporterScreenshotPreview.setOnClickListener {
+                startActivity(PaintActivity.getIntent(this@BugReportFormActivity, imagePath))
+            }
 
-        bugReporterOptionsRecycler.apply {
-            addItemDecoration(DividerItemDecoration(this@BugReportFormActivity, RecyclerView.VERTICAL))
-            layoutManager = LinearLayoutManager(this@BugReportFormActivity)
-            adapter = fieldItemsAdapter
+            bugReporterOptionsRecycler.apply {
+                addItemDecoration(
+                    DividerItemDecoration(
+                        this@BugReportFormActivity,
+                        RecyclerView.VERTICAL
+                    )
+                )
+                layoutManager = LinearLayoutManager(this@BugReportFormActivity)
+                adapter = fieldItemsAdapter
+            }
         }
     }
 
@@ -302,7 +326,7 @@ internal class BugReportFormActivity : BugReportActivity() {
     private fun createReport(): Intent {
 
         val resultObject = JSONObject().apply {
-            put(InternalConstants.KEY_DESCRIPTION, bugReporterDescription.text)
+            put(InternalConstants.KEY_DESCRIPTION, binding.bugReporterDescription.text)
         }
 
         fieldItems.filter { it.enabled }.forEach {

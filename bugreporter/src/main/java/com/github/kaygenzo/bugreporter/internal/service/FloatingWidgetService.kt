@@ -14,7 +14,6 @@ import com.github.kaygenzo.bugreporter.internal.BugReporterImpl
 import com.github.kaygenzo.bugreporter.internal.shake.OnShakeListener
 import com.github.kaygenzo.bugreporter.internal.shake.ShakeDetectorKotlin
 import com.github.kaygenzo.bugreporter.internal.utils.PermissionsUtils
-import kotlinx.android.synthetic.main.floating_widget.view.*
 import timber.log.Timber
 
 internal class FloatingWidgetService : Service(), OnShakeListener {
