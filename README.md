@@ -1,4 +1,4 @@
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d9671224fbb9449eb4ed373289c4059f)](https://app.codacy.com/gh/kaygenzo/BugReporter/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/d9671224fbb9449eb4ed373289c4059f)](https://app.codacy.com/gh/kaygenzo/BugReporter/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) [![Maven Central](https://img.shields.io/maven-central/v/com.github.kaygenzo/bugreporter.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.github.kaygenzo%22%20AND%20a:%22bugreporter%22)
 
 # BugReporter
 Bug reporting library to let the user report an issue of a bug. 
