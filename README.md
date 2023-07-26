@@ -7,7 +7,7 @@ After clicking on the send button, the user is redirected to a content share pro
 ## Installation
 
 ```groovy
-implementation "io.github.kaygenzo:androidtable:$tablemultiscrollVersion"
+implementation "com.github.kaygenzo:bugreporter:$version"
 ```
 
 ## Usage
